@@ -73,5 +73,6 @@ Algunas herramientas que podrían utilizarse:
 ## 🤝 Equipo
 
 Proyecto desarrollado en el marco de la materia **Ciencia de Datos para la Medicina**.
+
 Integrantes: Giuliano Albo Alma, Piñeiro Felicitas, Tobalina Camila
 
