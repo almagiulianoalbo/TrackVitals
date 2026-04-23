@@ -1,0 +1,31 @@
+id_paciente,nombre,apellido,id_medico_cabecera,fecha_nacimiento,sexo,dni,email,telefono,tipo_diabetes
+1,Andrea,Hernández,1,1992-07-23,F,20714555,andrea1@gmail.com,1166722344,Gestacional
+2,Florencia,Pérez,1,1958-09-27,F,35496489,florencia2@gmail.com,1122981052,Tipo 2
+3,Natalia,Castro,5,1956-02-25,F,18376941,natalia3@gmail.com,1160806024,Tipo 2
+4,Natalia,Flores,1,1970-12-07,F,25293994,natalia4@gmail.com,1148840994,Gestacional
+5,Alejandro,Suárez,6,1982-10-21,M,34483473,alejandro5@gmail.com,1131831063,Tipo 1
+6,Natalia,Hernández,5,1962-04-02,F,21484920,natalia6@gmail.com,1181691040,Tipo 2
+7,Martín,Romero,6,1989-04-17,M,31762245,martín7@gmail.com,1117507864,Tipo 2
+8,Roberto,Medina,2,1981-10-26,M,31117675,roberto8@gmail.com,1138538251,Tipo 2
+9,Verónica,Molina,2,1997-10-24,F,27632290,verónica9@gmail.com,1188461803,Tipo 2
+10,Silvina,Muñoz,1,1992-12-29,F,13161926,silvina10@gmail.com,1124716857,Tipo 2
+11,Martín,Medina,4,1969-02-11,M,41410296,martín11@gmail.com,1181016525,Tipo 2
+12,Jimena,Suárez,5,1964-01-18,F,27906335,jimena12@gmail.com,1196028436,Tipo 1
+13,Lucía,Flores,6,1996-07-19,F,27675739,lucía13@gmail.com,1177187530,Tipo 2
+14,Facundo,Jiménez,6,1951-05-04,M,44068679,facundo14@gmail.com,1191734598,Tipo 1
+15,Gonzalo,Moreno,5,1972-06-16,M,31753744,gonzalo15@gmail.com,1175579548,Tipo 2
+16,Fernando,Jiménez,1,1950-10-14,M,26164618,fernando16@gmail.com,1186149359,Tipo 2
+17,Javier,Ramos,2,1955-02-12,M,41895660,javier17@gmail.com,1183793389,Tipo 2
+18,Andrea,Gutiérrez,6,1993-06-06,F,30918926,andrea18@gmail.com,1163551839,Gestacional
+19,Romina,Molina,1,1999-11-02,F,32688538,romina19@gmail.com,1112823170,Gestacional
+20,Matías,Torres,1,2002-03-10,M,25364023,matías20@gmail.com,1119046318,Tipo 1
+21,Laura,Martínez,2,1989-04-02,F,18879297,laura21@gmail.com,1186644106,Gestacional
+22,Laura,Medina,1,1955-08-23,F,16504916,laura22@gmail.com,1198447167,Tipo 2
+23,Natalia,Álvarez,1,1978-02-14,F,37019456,natalia23@gmail.com,1155540424,Tipo 2
+24,Alejandro,Hernández,4,1972-07-28,M,22313673,alejandro24@gmail.com,1147385696,Tipo 2
+25,Laura,Suárez,1,1978-06-05,F,10990382,laura25@gmail.com,1122517517,Tipo 1
+26,Martín,Álvarez,1,1976-11-24,M,21048610,martín26@gmail.com,1160864911,Tipo 2
+27,Gustavo,Ramírez,2,1988-08-06,M,22743830,gustavo27@gmail.com,1149823450,Tipo 2
+28,Sofía,Sánchez,1,1959-10-09,F,41996735,sofía28@gmail.com,1177491435,Gestacional
+29,Roberto,Gutiérrez,5,1952-12-14,M,14560776,roberto29@gmail.com,1141568532,Tipo 1
+30,Laura,Molina,5,1969-05-15,F,15501813,laura30@gmail.com,1166267415,Gestacional
