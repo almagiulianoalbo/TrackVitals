@@ -210,6 +210,10 @@ if "usuario" not in st.session_state:
 if "pagina" not in st.session_state:
     st.session_state.pagina = "dashboard"
 
+# para manejar login / registro / recuperar
+if "auth_screen" not in st.session_state:
+    st.session_state.auth_screen = "login"
+
 # ── Importar páginas ──────────────────────────────────────────────────────────
 from pages import login, paciente_dashboard, medico_dashboard
 
