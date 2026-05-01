@@ -1,0 +1,6 @@
+streamlit
+python-dotenv
+supabase==2.4.5
+httpx==0.27.2
+pandas
+plotly
