@@ -1,78 +1,39 @@
-# 🩺 Track Vitals  
-**Built for diabetics**
+# TrackVitals
 
-Aplicación orientada al seguimiento integral de pacientes con diabetes, diseñada para centralizar información clínica y mejorar la toma de decisiones médicas.
+Aplicacion Next.js para pacientes con diabetes y medicos. Este primer corte incluye autenticacion por tipo de usuario, registro, login, logout, sesion con cookie HTTP-only y un dashboard inicial protegido.
 
----
+## Requisitos
 
-## 📌 Descripción
+- Node.js
+- npm
+- Proyecto Supabase con las tablas `medicos` y `pacientes`
 
-**Track Vitals** es una aplicación pensada para conectar médicos y pacientes a través de un sistema simple, claro y accesible, donde toda la información relevante se encuentra en un solo lugar.
+## Configuracion
 
-Actualmente, muchos pacientes diabéticos manejan sus datos (glucemia, medicación, dieta, estudios) de forma dispersa, lo que dificulta el seguimiento y la detección de patrones. Este proyecto busca resolver ese problema mediante una plataforma centralizada.
+1. Instala dependencias:
 
----
+```bash
+npm install
+```
 
-## 🎯 Objetivo
+2. Crea `.env` tomando `.env.example` como base:
 
-Facilitar el monitoreo continuo de pacientes con diabetes, permitiendo:
+```bash
+SUPABASE_URL=https://tu-proyecto.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=tu-service-role-key
+AUTH_SECRET=pon-un-secreto-largo-y-aleatorio
+```
 
-- Mejor seguimiento clínico  
-- Visualización clara de la evolución del paciente  
-- Detección temprana de patrones o anomalías  
-- Mayor participación del paciente en su tratamiento  
+3. Ejecuta el servidor:
 
----
+```bash
+npm run dev
+```
 
-## ⚙️ Funcionalidades (en desarrollo)
+La app queda disponible en `http://localhost:3000`.
 
-### 👨‍⚕️ Para médicos
-- Registro de signos vitales:
-  - Glucemia  
-  - Frecuencia cardíaca  
-  - Peso  
-- Seguimiento de dosis de insulina  
-- Visualización de datos mediante gráficos  
-- Detección de tendencias y patrones clínicos  
-- Asignación de planes de dieta personalizados  
+## Notas de base de datos
 
-### 👤 Para pacientes
-- Carga de datos personales y controles diarios  
-- Acceso a su historia clínica  
-- Seguimiento de su evolución en el tiempo  
-- Visualización de su plan de dieta:
-  - Distribución de comidas  
-  - Carbohidratos y calorías  
-
----
-
-## 📊 Enfoque del proyecto
-
-A diferencia de un simple sistema de registro, **Track Vitals** está pensado como una herramienta integral que combina:
-
-- Control de glucosa  
-- Administración de insulina  
-- Seguimiento nutricional  
-
-Todo en una misma plataforma, permitiendo entender la evolución del paciente de manera completa.
-
-
----
-
-## 🧠 Tecnologías
-
-Algunas herramientas que podrían utilizarse:
-
-- Python  
-- Streamlit / Web framework  
-- Base de datos (SQL / NoSQL)  
-- Librerías de visualización de datos  
-
----
-
-## 🤝 Equipo
-
-Proyecto desarrollado en el marco de la materia **Ciencia de Datos para la Medicina**.
-
-Integrantes: Giuliano Albo Alma, Piñeiro Felicitas, Tobalina Camila
-
+- El registro no pide `id_medico` ni `id_paciente`; esas columnas deberian tener default autoincremental o identity en Supabase.
+- `password_med` y `password_pac` guardan hashes PBKDF2 para no persistir contrasenas en texto plano.
+- El login tolera contrasenas existentes en texto plano para facilitar migraciones iniciales, pero los nuevos registros se guardan hasheados.
