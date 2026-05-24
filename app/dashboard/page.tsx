@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { DashboardShell, getInitials } from "@/components/DashboardChrome";
+import { PatientDashboardPanel } from "@/components/PatientDashboardPanel";
 import { getCurrentSession } from "@/lib/auth";
 import type { SessionUser } from "@/lib/auth-types";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
@@ -41,7 +42,7 @@ export default async function DashboardPage() {
       {user.role === "medico" ? (
         <DoctorDashboard user={user} patients={data.assignedPatients} patientsCount={data.assignedPatientsCount} />
       ) : (
-        <PatientDashboard />
+        <PatientDashboardPanel />
       )}
     </DashboardShell>
   );
@@ -145,45 +146,6 @@ function DoctorDashboard({
             )}
           </div>
         </aside>
-      </section>
-    </div>
-  );
-}
-
-function PatientDashboard() {
-  return (
-    <div className="dashboard-content">
-      <section className="clinical-grid patient-main-grid">
-        <article className="dashboard-card patient-focus">
-          <div className="section-heading">
-            <div>
-              <p className="eyebrow">Registro diario</p>
-              <h2>Control de hoy</h2>
-            </div>
-            <button className="inline-action" type="button">
-              Crear registro
-            </button>
-          </div>
-
-          <div className="clinical-metrics">
-            <MetricCard label="Glucemia" value="--" unit="mg/dL" status="Sin medición" compact />
-            <MetricCard label="Insulina" value="--" unit="u" status="Sin carga" compact />
-            <MetricCard label="Peso" value="--" unit="kg" status="Sin carga" compact />
-            <MetricCard label="Síntomas" value="0" status="Sin alertas" compact />
-          </div>
-
-          <div className="chart-grid">
-            <MiniLineChart title="Tendencia de glucemia" />
-            <MiniBarChart title="Adherencia semanal" />
-          </div>
-        </article>
-      </section>
-
-      <section className="metric-grid" aria-label="Resumen del paciente">
-        <MetricCard label="Pedir turno" value="+" status="Control con tu médico" />
-        <MetricCard label="Cargar medicación" value="+" status="Dosis y horario" />
-        <MetricCard label="Próximo control" value="--" status="Sin turno cargado" />
-        <MetricCard label="Alertas" value="0" status="Sin alertas activas" tone="danger" />
       </section>
     </div>
   );

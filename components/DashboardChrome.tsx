@@ -3,9 +3,22 @@ import Link from "next/link";
 import { LogoutButton } from "@/components/LogoutButton";
 import { roleLabels, type SessionUser } from "@/lib/auth-types";
 
+export type DashboardNavKey =
+  | "panel"
+  | "perfil"
+  | "registros"
+  | "pacientes"
+  | "prescripciones"
+  | "registrar-signos"
+  | "turnos"
+  | "alertas"
+  | "medicacion"
+  | "plan-alimentario"
+  | "mensajes";
+
 type DashboardShellProps = {
   user: SessionUser;
-  activeItem: "panel" | "perfil";
+  activeItem: DashboardNavKey;
   subtitle: string;
   children: React.ReactNode;
 };
@@ -13,7 +26,7 @@ type DashboardShellProps = {
 type NavItem = {
   label: string;
   href?: string;
-  key?: "panel" | "perfil";
+  key?: DashboardNavKey;
 };
 
 export function DashboardShell({ user, activeItem, subtitle, children }: DashboardShellProps) {
@@ -37,25 +50,25 @@ export function DashboardShell({ user, activeItem, subtitle, children }: Dashboa
   );
 }
 
-function DashboardSidebar({ user, activeItem }: { user: SessionUser; activeItem: "panel" | "perfil" }) {
+function DashboardSidebar({ user, activeItem }: { user: SessionUser; activeItem: DashboardNavKey }) {
   const items: NavItem[] =
     user.role === "medico"
       ? [
           { label: "Panel principal", href: "/dashboard", key: "panel" },
-          { label: "Mis pacientes" },
-          { label: "Prescripciones" },
-          { label: "Registrar signos" },
-          { label: "Turnos" },
-          { label: "Alertas" },
+          { label: "Mis pacientes", href: "/dashboard/mis-pacientes", key: "pacientes" },
+          { label: "Prescripciones", href: "/dashboard/prescripciones", key: "prescripciones" },
+          { label: "Registrar signos", href: "/dashboard/registrar-signos", key: "registrar-signos" },
+          { label: "Turnos", href: "/dashboard/turnos", key: "turnos" },
+          { label: "Alertas", href: "/dashboard/alertas", key: "alertas" },
           { label: "Perfil", href: "/dashboard/perfil", key: "perfil" }
         ]
       : [
           { label: "Panel principal", href: "/dashboard", key: "panel" },
-          { label: "Mis registros" },
-          { label: "Medicación" },
-          { label: "Plan alimentario" },
-          { label: "Turnos" },
-          { label: "Mensajes" },
+          { label: "Mis registros", href: "/dashboard/mis-registros", key: "registros" },
+          { label: "Medicación", href: "/dashboard/medicacion", key: "medicacion" },
+          { label: "Plan alimentario", href: "/dashboard/plan-alimentario", key: "plan-alimentario" },
+          { label: "Turnos", href: "/dashboard/turnos", key: "turnos" },
+          { label: "Mensajes", href: "/dashboard/mensajes", key: "mensajes" },
           { label: "Perfil", href: "/dashboard/perfil", key: "perfil" }
         ];
 
