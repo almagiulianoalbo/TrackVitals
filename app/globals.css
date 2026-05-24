@@ -511,6 +511,11 @@ a:hover {
   font-size: 0.52em;
 }
 
+.metric-card strong.subdued-value {
+  font-size: 1.05rem;
+  line-height: 1.2;
+}
+
 .metric-card em {
   color: var(--green-600);
   font-style: normal;
@@ -588,15 +593,18 @@ a:hover {
   color: inherit;
   cursor: pointer;
   text-align: left;
+  text-decoration: none;
   transition:
     border-color 160ms ease,
     box-shadow 160ms ease,
     transform 160ms ease;
 }
 
-.action-metric-card:hover {
+.action-metric-card:hover,
+.link-metric-card:hover {
   border-color: rgba(21, 117, 186, 0.45);
   box-shadow: 0 16px 36px rgba(18, 103, 168, 0.16);
+  text-decoration: none;
   transform: translateY(-1px);
 }
 
@@ -649,6 +657,7 @@ a:hover {
 }
 
 .period-tabs button,
+.period-tabs a,
 .inline-action {
   display: inline-flex;
   align-items: center;
@@ -662,9 +671,11 @@ a:hover {
   cursor: pointer;
   font-weight: 900;
   padding: 0 14px;
+  text-decoration: none;
 }
 
 .period-tabs button.active,
+.period-tabs a.active,
 .inline-action {
   border-color: var(--blue-600);
   background: var(--ink-900);

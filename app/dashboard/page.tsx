@@ -3,6 +3,7 @@ import { DashboardShell, getInitials } from "@/components/DashboardChrome";
 import { PatientDashboardPanel } from "@/components/PatientDashboardPanel";
 import { getCurrentSession } from "@/lib/auth";
 import type { SessionUser } from "@/lib/auth-types";
+import { formatDateTime, formatValue } from "@/lib/dashboard-format";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 type PatientPreview = {
@@ -24,6 +25,13 @@ type PatientProfile = {
 type DashboardData = {
   assignedPatients: PatientPreview[];
   assignedPatientsCount: number;
+  nextAppointment: PatientNextAppointment | null;
+  patientAlertCount: number;
+};
+
+type PatientNextAppointment = {
+  fecha_hora: string | null;
+  motivo: string | null;
 };
 
 export default async function DashboardPage() {
@@ -42,7 +50,11 @@ export default async function DashboardPage() {
       {user.role === "medico" ? (
         <DoctorDashboard user={user} patients={data.assignedPatients} patientsCount={data.assignedPatientsCount} />
       ) : (
-        <PatientDashboardPanel />
+        <PatientDashboardPanel
+          nextAppointmentValue={data.nextAppointment ? formatDateTime(data.nextAppointment.fecha_hora) : "--"}
+          nextAppointmentStatus={data.nextAppointment ? formatValue(data.nextAppointment.motivo, "Turno pendiente") : "Sin turno cargado"}
+          alertCount={data.patientAlertCount}
+        />
       )}
     </DashboardShell>
   );
@@ -236,7 +248,9 @@ function MiniBarChart({ title }: { title: string }) {
 async function getDashboardData(user: SessionUser): Promise<DashboardData> {
   const fallback: DashboardData = {
     assignedPatients: [],
-    assignedPatientsCount: 0
+    assignedPatientsCount: 0,
+    nextAppointment: null,
+    patientAlertCount: 0
   };
 
   try {
@@ -260,11 +274,32 @@ async function getDashboardData(user: SessionUser): Promise<DashboardData> {
       };
     }
 
-    return fallback;
+    const [{ data }, { count }] = await Promise.all([
+      supabase
+        .from("turnos")
+        .select("fecha_hora,motivo")
+        .eq("id_paciente", user.userId)
+        .eq("estado", "pendiente")
+        .gte("fecha_hora", toSupabaseTimestamp(new Date()))
+        .order("fecha_hora", { ascending: true })
+        .limit(1)
+        .maybeSingle(),
+      supabase.from("alerta").select("id_alerta", { count: "exact", head: true }).eq("id_paciente", user.userId).eq("vista", false)
+    ]);
+
+    return {
+      ...fallback,
+      nextAppointment: (data as PatientNextAppointment | null) ?? null,
+      patientAlertCount: count ?? 0
+    };
   } catch (error) {
     console.error(error);
     return fallback;
   }
+}
+
+function toSupabaseTimestamp(date: Date) {
+  return date.toISOString().replace("T", " ").slice(0, 19);
 }
 
 function formatAge(date: string | null | undefined) {

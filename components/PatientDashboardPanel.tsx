@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, type FormEvent } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 type ModalType = "record" | "appointment" | "medication";
@@ -17,7 +18,13 @@ const initialState: SubmitState = {
   error: null
 };
 
-export function PatientDashboardPanel() {
+type PatientDashboardPanelProps = {
+  nextAppointmentValue: string;
+  nextAppointmentStatus: string;
+  alertCount: number;
+};
+
+export function PatientDashboardPanel({ nextAppointmentValue, nextAppointmentStatus, alertCount }: PatientDashboardPanelProps) {
   const [activeModal, setActiveModal] = useState<ModalType | null>(null);
   const [submitState, setSubmitState] = useState<SubmitState>(initialState);
   const router = useRouter();
@@ -109,8 +116,14 @@ export function PatientDashboardPanel() {
       <section className="metric-grid" aria-label="Resumen del paciente">
         <ActionMetricCard label="Pedir turno" value="+" status="Control con tu médico" onClick={() => openModal("appointment")} />
         <ActionMetricCard label="Cargar medicación" value="+" status="Dosis y horario" onClick={() => openModal("medication")} />
-        <MetricCard label="Próximo control" value="--" status="Sin turno cargado" />
-        <MetricCard label="Alertas" value="0" status="Sin alertas activas" tone="danger" />
+        <MetricCard label="Próximo control" value={nextAppointmentValue} status={nextAppointmentStatus} subduedValue={nextAppointmentValue !== "--"} />
+        <LinkMetricCard
+          href="/dashboard/alertas"
+          label="Alertas"
+          value={String(alertCount)}
+          status={alertCount ? "Alertas sin ver" : "Sin alertas activas"}
+          tone="danger"
+        />
       </section>
 
       {activeModal ? (
@@ -260,13 +273,36 @@ function ActionMetricCard({ label, value, status, onClick }: { label: string; va
   );
 }
 
+function LinkMetricCard({
+  href,
+  label,
+  value,
+  status,
+  tone = "neutral"
+}: {
+  href: string;
+  label: string;
+  value: string;
+  status: string;
+  tone?: "neutral" | "danger";
+}) {
+  return (
+    <Link className={`metric-card action-metric-card link-metric-card ${tone === "danger" ? "danger" : ""}`} href={href}>
+      <span>{label}</span>
+      <strong>{value}</strong>
+      <em>{status}</em>
+    </Link>
+  );
+}
+
 function MetricCard({
   label,
   value,
   unit,
   status,
   tone = "neutral",
-  compact = false
+  compact = false,
+  subduedValue = false
 }: {
   label: string;
   value: string;
@@ -274,11 +310,12 @@ function MetricCard({
   status: string;
   tone?: "neutral" | "danger";
   compact?: boolean;
+  subduedValue?: boolean;
 }) {
   return (
     <article className={`metric-card ${compact ? "compact" : ""} ${tone === "danger" ? "danger" : ""}`}>
       <span>{label}</span>
-      <strong>
+      <strong className={subduedValue ? "subdued-value" : ""}>
         {value}
         {unit ? <small>{unit}</small> : null}
       </strong>

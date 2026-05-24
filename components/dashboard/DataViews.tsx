@@ -18,17 +18,21 @@ type DataPageProps = {
   title: string;
   emptyMessage: string;
   items: ListItem[];
+  framed?: boolean;
+  showHeading?: boolean;
 };
 
-export function DataList({ eyebrow, title, emptyMessage, items }: DataPageProps) {
-  return (
-    <section className="dashboard-card profile-card">
-      <div className="section-heading">
-        <div>
-          <p className="eyebrow">{eyebrow}</p>
-          <h2>{title}</h2>
+export function DataList({ eyebrow, title, emptyMessage, items, framed = true, showHeading = true }: DataPageProps) {
+  const content = (
+    <>
+      {showHeading ? (
+        <div className="section-heading">
+          <div>
+            {eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}
+            {title ? <h2>{title}</h2> : null}
+          </div>
         </div>
-      </div>
+      ) : null}
 
       {items.length ? (
         <div className="data-list">
@@ -55,6 +59,16 @@ export function DataList({ eyebrow, title, emptyMessage, items }: DataPageProps)
       ) : (
         <p className="empty-state">{emptyMessage}</p>
       )}
+    </>
+  );
+
+  if (!framed) {
+    return <div className="embedded-data-list">{content}</div>;
+  }
+
+  return (
+    <section className="dashboard-card profile-card">
+      {content}
     </section>
   );
 }
