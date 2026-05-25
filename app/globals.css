@@ -167,9 +167,9 @@ a:hover {
 }
 
 .field input,
-.field select {
+.field select,
+.field textarea {
   width: 100%;
-  min-height: 48px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--surface);
@@ -181,12 +181,24 @@ a:hover {
     box-shadow 160ms ease;
 }
 
+.field input,
+.field select {
+  min-height: 48px;
+}
+
+.field textarea {
+  min-height: 112px;
+  padding: 13px;
+  resize: vertical;
+}
+
 .field select {
   cursor: pointer;
 }
 
 .field input:focus,
-.field select:focus {
+.field select:focus,
+.field textarea:focus {
   border-color: var(--blue-600);
   box-shadow: 0 0 0 4px rgba(21, 117, 186, 0.12);
 }
@@ -295,9 +307,16 @@ a:hover {
 .sidebar-user strong,
 .sidebar-user small {
   display: block;
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.sidebar-brand > div,
+.sidebar-user > div {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .sidebar-brand strong {
@@ -357,6 +376,7 @@ a:hover {
 .sidebar-user {
   border-top: 1px solid var(--line);
   padding-top: 16px;
+  width: 100%;
 }
 
 .avatar-badge,
@@ -732,16 +752,16 @@ a:hover {
   justify-content: flex-end;
 }
 
-.patient-row strong,
-.patient-row span {
+.patient-row div strong,
+.patient-row div span {
   display: block;
 }
 
-.patient-row strong {
+.patient-row div strong {
   font-size: 1.06rem;
 }
 
-.patient-row span {
+.patient-row div span {
   margin-top: 3px;
   color: var(--ink-700);
   font-weight: 700;
@@ -764,10 +784,28 @@ a:hover {
   font-size: 1rem;
 }
 
+.chart-heading-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.chart-heading-row h3 {
+  margin: 0;
+}
+
+.chart-heading-row span {
+  color: var(--ink-500);
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
 .chart-card svg {
   display: block;
   width: 100%;
-  height: 160px;
+  height: 170px;
 }
 
 .chart-grid-line {
@@ -785,10 +823,92 @@ a:hover {
   stroke-width: 5;
 }
 
+.smooth-line {
+  filter: drop-shadow(0 6px 10px rgba(21, 117, 186, 0.16));
+}
+
 .chart-dots circle {
   fill: var(--red-500);
   stroke: white;
   stroke-width: 2;
+}
+
+.glucose-band {
+  opacity: 0.46;
+}
+
+.glucose-band.low {
+  fill: #fdecee;
+}
+
+.glucose-band.normal {
+  fill: #eef8ea;
+}
+
+.glucose-band.high {
+  fill: #fff4dc;
+}
+
+.glucose-reference {
+  fill: none;
+  stroke-dasharray: 5 5;
+  stroke-linecap: round;
+  stroke-width: 2;
+}
+
+.glucose-reference.low-line {
+  stroke: rgba(216, 61, 76, 0.42);
+}
+
+.glucose-reference.high-line {
+  stroke: rgba(205, 139, 35, 0.44);
+}
+
+.chart-axis-labels text {
+  fill: var(--ink-500);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-top: 8px;
+}
+
+.chart-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--ink-500);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.chart-legend i {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+}
+
+.legend-low {
+  background: #f3a5ad;
+}
+
+.legend-normal {
+  background: #a6d795;
+}
+
+.legend-high {
+  background: #efc46c;
+}
+
+.chart-empty {
+  margin: 8px 0 0;
+  color: var(--ink-500);
+  font-size: 0.85rem;
+  font-weight: 800;
 }
 
 .bar-chart {
@@ -804,6 +924,44 @@ a:hover {
   min-width: 18px;
   border-radius: 6px 6px 0 0;
   background: linear-gradient(180deg, var(--green-600), rgba(31, 155, 180, 0.76));
+}
+
+.adherence-chart {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+  height: 184px;
+  padding: 12px 2px 0;
+}
+
+.adherence-bar {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto auto;
+  gap: 6px;
+  align-items: end;
+  min-width: 0;
+  height: 100%;
+  text-align: center;
+}
+
+.adherence-bar span {
+  justify-self: center;
+  width: min(100%, 26px);
+  min-width: 12px;
+  border-radius: 7px 7px 3px 3px;
+  background: linear-gradient(180deg, #41b86f, #9fd57c);
+  box-shadow: 0 8px 18px rgba(65, 184, 111, 0.18);
+}
+
+.adherence-bar strong,
+.adherence-bar small {
+  color: var(--ink-500);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.adherence-bar small {
+  color: var(--ink-900);
 }
 
 .patient-list {
@@ -927,6 +1085,608 @@ a:hover {
   min-height: auto;
 }
 
+.patients-directory {
+  display: grid;
+  gap: 16px;
+}
+
+.directory-count {
+  width: fit-content;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-soft);
+  color: var(--ink-700);
+  font-size: 0.88rem;
+  font-weight: 900;
+  padding: 9px 13px;
+}
+
+.directory-search {
+  display: grid;
+  gap: 7px;
+}
+
+.directory-search span {
+  color: var(--ink-700);
+  font-size: 0.9rem;
+  font-weight: 850;
+}
+
+.directory-search input {
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink-900);
+  outline: none;
+  padding: 0 13px;
+}
+
+.directory-search input:focus {
+  border-color: var(--blue-600);
+  box-shadow: 0 0 0 4px rgba(21, 117, 186, 0.12);
+}
+
+.patients-directory-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.compact-patient-list {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  max-height: min(62vh, 620px);
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.compact-patient-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 62px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: inherit;
+  cursor: pointer;
+  padding: 10px 12px;
+  text-align: left;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.compact-patient-row:hover,
+.compact-patient-row.active {
+  border-color: rgba(21, 117, 186, 0.42);
+  box-shadow: 0 12px 28px rgba(18, 103, 168, 0.1);
+  transform: translateY(-1px);
+}
+
+.compact-patient-row.active {
+  background: linear-gradient(135deg, rgba(229, 243, 251, 0.98), rgba(238, 248, 234, 0.82));
+}
+
+.compact-patient-row strong,
+.compact-patient-row small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.compact-patient-row strong {
+  color: var(--ink-900);
+  font-size: 0.98rem;
+}
+
+.compact-patient-row small,
+.compact-patient-row em {
+  color: var(--ink-500);
+  font-size: 0.82rem;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.patient-detail-panel {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+  border: 1px solid rgba(215, 230, 236, 0.92);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(229, 243, 251, 0.72), rgba(238, 248, 234, 0.58)),
+    var(--surface);
+  padding: 16px;
+}
+
+.patient-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.patient-detail-header h3 {
+  margin: 0;
+  color: var(--ink-900);
+  font-size: 1.18rem;
+  line-height: 1.18;
+  overflow-wrap: anywhere;
+}
+
+.patient-detail-header small {
+  display: block;
+  margin-top: 4px;
+  color: var(--ink-500);
+  font-weight: 850;
+}
+
+.compact-detail-list {
+  border-top: 1px solid rgba(215, 230, 236, 0.9);
+  padding-top: 2px;
+}
+
+.prescriptions-board {
+  display: grid;
+  gap: 16px;
+}
+
+.prescription-summary {
+  display: inline-grid;
+  grid-auto-flow: column;
+  align-items: baseline;
+  gap: 6px;
+  width: fit-content;
+  border: 1px solid rgba(65, 184, 111, 0.28);
+  border-radius: 999px;
+  background: rgba(238, 248, 234, 0.88);
+  color: var(--green-600);
+  padding: 8px 13px;
+}
+
+.prescription-summary strong {
+  color: var(--ink-900);
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.prescription-summary span {
+  font-size: 0.86rem;
+  font-weight: 900;
+}
+
+.prescription-toolbar {
+  display: grid;
+  gap: 12px;
+}
+
+.status-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.status-filter button {
+  min-height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink-700);
+  cursor: pointer;
+  font-weight: 900;
+  padding: 0 12px;
+}
+
+.status-filter button.active {
+  border-color: rgba(21, 117, 186, 0.32);
+  background: var(--ink-900);
+  color: white;
+}
+
+.prescriptions-layout {
+  display: grid;
+  gap: 16px;
+}
+
+.prescription-inbox {
+  display: grid;
+  gap: 9px;
+  align-content: start;
+  max-height: min(62vh, 620px);
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.prescription-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 66px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: inherit;
+  cursor: pointer;
+  padding: 11px 12px;
+  text-align: left;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.prescription-row:hover,
+.prescription-row.active {
+  border-color: rgba(65, 184, 111, 0.46);
+  box-shadow: 0 12px 28px rgba(64, 125, 86, 0.11);
+  transform: translateY(-1px);
+}
+
+.prescription-row.active {
+  background: linear-gradient(135deg, rgba(238, 248, 234, 0.95), rgba(255, 255, 255, 0.98));
+}
+
+.prescription-row strong,
+.prescription-row small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.prescription-row strong {
+  color: var(--ink-900);
+  font-size: 0.98rem;
+}
+
+.prescription-row small,
+.prescription-row em {
+  color: var(--ink-500);
+  font-size: 0.82rem;
+  font-style: normal;
+  font-weight: 850;
+}
+
+.status-dot {
+  width: 12px;
+  height: 42px;
+  border-radius: 999px;
+  background: var(--line);
+}
+
+.status-dot.activa,
+.status-pill.activa {
+  background: #41b86f;
+}
+
+.status-dot.pausada,
+.status-pill.pausada {
+  background: #efc46c;
+}
+
+.status-dot.finalizada,
+.status-pill.finalizada {
+  background: #8ea3b4;
+}
+
+.prescription-detail {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+  border: 1px solid rgba(215, 230, 236, 0.92);
+  border-radius: 8px;
+  background: var(--surface);
+  padding: 18px;
+}
+
+.prescription-detail-header {
+  display: grid;
+  gap: 8px;
+  border-bottom: 1px solid rgba(215, 230, 236, 0.9);
+  padding-bottom: 14px;
+}
+
+.status-pill {
+  width: fit-content;
+  border-radius: 999px;
+  color: white;
+  font-size: 0.76rem;
+  font-weight: 950;
+  padding: 6px 9px;
+  text-transform: uppercase;
+}
+
+.prescription-detail-header h3 {
+  margin: 0;
+  color: var(--ink-900);
+  font-size: clamp(1.3rem, 4vw, 1.9rem);
+  line-height: 1.08;
+  overflow-wrap: anywhere;
+}
+
+.prescription-detail-header p {
+  margin: 0;
+  color: var(--ink-500);
+  font-weight: 850;
+}
+
+.prescription-detail-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+}
+
+.prescription-detail-grid div {
+  border: 1px solid rgba(215, 230, 236, 0.9);
+  border-radius: 8px;
+  background: var(--surface-soft);
+  padding: 11px;
+}
+
+.prescription-detail-grid dt,
+.prescription-notes span {
+  color: var(--ink-500);
+  font-size: 0.76rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.prescription-detail-grid dd {
+  margin: 5px 0 0;
+  color: var(--ink-900);
+  font-weight: 850;
+  overflow-wrap: anywhere;
+}
+
+.prescription-notes {
+  display: grid;
+  gap: 7px;
+}
+
+.prescription-notes p {
+  margin: 0;
+  border-left: 4px solid rgba(65, 184, 111, 0.42);
+  border-radius: 6px;
+  background: rgba(238, 248, 234, 0.78);
+  color: var(--ink-700);
+  font-weight: 760;
+  line-height: 1.5;
+  padding: 11px 12px;
+}
+
+.signs-explorer {
+  display: grid;
+  gap: 16px;
+}
+
+.signs-summary {
+  display: inline-grid;
+  grid-auto-flow: column;
+  align-items: baseline;
+  gap: 6px;
+  width: fit-content;
+  border: 1px solid rgba(21, 117, 186, 0.22);
+  border-radius: 999px;
+  background: rgba(229, 243, 251, 0.9);
+  color: var(--blue-700);
+  padding: 8px 13px;
+}
+
+.signs-summary strong {
+  color: var(--ink-900);
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.signs-summary span {
+  font-size: 0.86rem;
+  font-weight: 900;
+}
+
+.signs-toolbar {
+  display: grid;
+  gap: 12px;
+}
+
+.signs-layout {
+  display: grid;
+  gap: 16px;
+}
+
+.signs-timeline {
+  display: grid;
+  gap: 9px;
+  align-content: start;
+  max-height: min(66vh, 680px);
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.sign-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 68px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: inherit;
+  cursor: pointer;
+  padding: 11px 12px;
+  text-align: left;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.sign-row:hover,
+.sign-row.active {
+  border-color: rgba(216, 61, 76, 0.34);
+  box-shadow: 0 12px 28px rgba(154, 45, 59, 0.1);
+  transform: translateY(-1px);
+}
+
+.sign-row.active {
+  background: linear-gradient(135deg, rgba(255, 243, 244, 0.95), rgba(255, 255, 255, 0.98));
+}
+
+.sign-row strong,
+.sign-row small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sign-row strong {
+  color: var(--ink-900);
+  font-size: 0.98rem;
+}
+
+.sign-row small,
+.sign-row em {
+  color: var(--ink-500);
+  font-size: 0.82rem;
+  font-style: normal;
+  font-weight: 850;
+}
+
+.glucose-badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 48px;
+  height: 42px;
+  border-radius: 8px;
+  background: var(--surface-soft);
+  color: var(--ink-900);
+  font-weight: 950;
+}
+
+.glucose-badge.low {
+  background: #eef5ff;
+  color: var(--blue-700);
+}
+
+.glucose-badge.normal {
+  background: rgba(238, 248, 234, 0.92);
+  color: var(--green-600);
+}
+
+.glucose-badge.high {
+  background: #fff3f4;
+  color: var(--red-500);
+}
+
+.sign-detail {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+}
+
+.sign-kpis {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.sign-mini-metric {
+  border: 1px solid rgba(215, 230, 236, 0.92);
+  border-radius: 8px;
+  background: var(--surface);
+  padding: 12px;
+}
+
+.sign-mini-metric span,
+.sign-mini-metric em {
+  display: block;
+  color: var(--ink-500);
+  font-size: 0.76rem;
+  font-style: normal;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.sign-mini-metric strong {
+  display: block;
+  margin-top: 6px;
+  color: var(--ink-900);
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.sign-mini-metric em {
+  margin-top: 5px;
+  text-transform: none;
+}
+
+.sign-trend,
+.selected-sign-card {
+  border: 1px solid rgba(215, 230, 236, 0.92);
+  border-radius: 8px;
+  background: var(--surface);
+  padding: 16px;
+}
+
+.sign-trend svg {
+  display: block;
+  width: 100%;
+  height: 160px;
+}
+
+.selected-sign-card {
+  display: grid;
+  gap: 14px;
+}
+
+.selected-sign-card h3 {
+  margin: 0;
+  color: var(--ink-900);
+  font-size: 1.25rem;
+}
+
+.selected-sign-card span {
+  color: var(--ink-500);
+  font-weight: 850;
+}
+
+.sign-detail-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+}
+
+.sign-detail-grid div {
+  border: 1px solid rgba(215, 230, 236, 0.9);
+  border-radius: 8px;
+  background: var(--surface-soft);
+  padding: 11px;
+}
+
+.sign-detail-grid dt {
+  color: var(--ink-500);
+  font-size: 0.76rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.sign-detail-grid dd {
+  margin: 5px 0 0;
+  color: var(--ink-900);
+  font-weight: 850;
+  overflow-wrap: anywhere;
+}
+
 .profile-note {
   margin: 18px 0 0;
   color: var(--ink-700);
@@ -939,9 +1699,39 @@ a:hover {
   padding-bottom: 12px;
 }
 
+button.patient-list-item {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  padding: 0 0 12px;
+  text-align: left;
+}
+
+.patient-list-item.selectable {
+  border-radius: 8px;
+  transition:
+    background 160ms ease,
+    box-shadow 160ms ease,
+    padding 160ms ease;
+}
+
+.patient-list-item.selectable:hover,
+.patient-list-item.selectable.active {
+  background: rgba(229, 243, 251, 0.82);
+  box-shadow: inset 3px 0 0 var(--blue-600);
+  padding: 10px;
+}
+
 .patient-list-item:last-child {
   border-bottom: 0;
   padding-bottom: 0;
+}
+
+button.patient-list-item:last-child {
+  border-bottom: 0;
 }
 
 .patient-list-item strong,
@@ -954,6 +1744,14 @@ a:hover {
   margin-top: 3px;
   color: var(--ink-500);
   font-weight: 700;
+}
+
+.chart-loading-panel {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+  height: 170px;
+  align-content: center;
 }
 
 .empty-state {
@@ -1036,6 +1834,31 @@ a:hover {
 
   .chart-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .patients-directory-grid {
+    grid-template-columns: minmax(280px, 0.9fr) minmax(300px, 1.1fr);
+    align-items: start;
+  }
+
+  .prescription-toolbar {
+    grid-template-columns: minmax(280px, 1fr) auto;
+    align-items: end;
+  }
+
+  .prescriptions-layout {
+    grid-template-columns: minmax(320px, 0.95fr) minmax(340px, 1.05fr);
+    align-items: start;
+  }
+
+  .signs-toolbar {
+    grid-template-columns: minmax(260px, 1fr) minmax(220px, 0.65fr) auto;
+    align-items: end;
+  }
+
+  .signs-layout {
+    grid-template-columns: minmax(360px, 1fr) minmax(380px, 1fr);
+    align-items: start;
   }
 }
 

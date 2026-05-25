@@ -1,20 +1,9 @@
 import { redirect } from "next/navigation";
 import { DashboardShell } from "@/components/DashboardChrome";
-import { DataList, type ListItem, unauthorizedList } from "@/components/dashboard/DataViews";
+import { unauthorizedList } from "@/components/dashboard/DataViews";
+import { SignsExplorer, type SignExplorerRow } from "@/components/SignsExplorer";
 import { getCurrentSession } from "@/lib/auth";
-import { formatDateTime, formatPatientName, formatValue } from "@/lib/dashboard-format";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
-
-type SignRow = {
-  id_registro: number;
-  fecha_hora: string;
-  momento: string | null;
-  glucemia_mgdl: number | null;
-  carbohidratos_g: number | null;
-  tipo_insulina: string | null;
-  dosis_unidades: number | string | null;
-  pacientes?: { nombre: string | null; apellido: string | null } | { nombre: string | null; apellido: string | null }[] | null;
-};
 
 export default async function RegisterSignsPage() {
   const user = await getCurrentSession();
@@ -32,12 +21,7 @@ export default async function RegisterSignsPage() {
 
   return (
     <DashboardShell user={user} activeItem="registrar-signos" subtitle="Registros clínicos de tus pacientes.">
-      <DataList
-        eyebrow="Registrar signos"
-        title="Registros diarios"
-        emptyMessage="Todavía no hay registros diarios para tus pacientes."
-        items={signs.map(toListItem)}
-      />
+      <SignsExplorer signs={signs} />
     </DashboardShell>
   );
 }
@@ -58,24 +42,9 @@ async function getSigns(doctorId: number) {
       return [];
     }
 
-    return (data ?? []) as SignRow[];
+    return (data ?? []) as SignExplorerRow[];
   } catch (error) {
     console.error(error);
     return [];
   }
-}
-
-function toListItem(sign: SignRow): ListItem {
-  return {
-    id: sign.id_registro,
-    title: formatDateTime(sign.fecha_hora),
-    meta: formatPatientName(sign.pacientes),
-    details: [
-      { label: "Momento", value: formatValue(sign.momento) },
-      { label: "Glucemia", value: sign.glucemia_mgdl ? `${sign.glucemia_mgdl} mg/dL` : "No cargado" },
-      { label: "Carbohidratos", value: sign.carbohidratos_g ? `${sign.carbohidratos_g} g` : "No cargado" },
-      { label: "Tipo de insulina", value: formatValue(sign.tipo_insulina) },
-      { label: "Dosis", value: sign.dosis_unidades ? `${sign.dosis_unidades} unidades` : "No cargado" }
-    ]
-  };
 }

@@ -29,13 +29,15 @@ export default async function AppointmentsPage({ searchParams }: AppointmentsPag
   const view = getFirstParam(params.vista) === "historial" ? "historial" : "pendientes";
   const appointments = await getAppointments(user.role, user.userId, view);
 
+  const pendingTitle = user.role === "medico" ? "Agenda" : "Turnos pendientes";
+
   return (
     <DashboardShell user={user} activeItem="turnos" subtitle="Turnos y consultas programadas.">
       <section className="dashboard-card profile-card">
         <div className="section-heading">
           <div>
             <p className="eyebrow">Turnos</p>
-            <h2>{view === "historial" ? "Historial de turnos" : "Turnos pendientes"}</h2>
+            <h2>{view === "historial" ? "Historial de turnos" : pendingTitle}</h2>
           </div>
           <div className="period-tabs" aria-label="Vista de turnos">
             <Link className={view === "pendientes" ? "active" : ""} href="/dashboard/turnos">

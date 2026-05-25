@@ -22,9 +22,18 @@ type PatientDashboardPanelProps = {
   nextAppointmentValue: string;
   nextAppointmentStatus: string;
   alertCount: number;
+  records: PatientRecordChartPoint[];
 };
 
-export function PatientDashboardPanel({ nextAppointmentValue, nextAppointmentStatus, alertCount }: PatientDashboardPanelProps) {
+type PatientRecordChartPoint = {
+  id_registro: number;
+  fecha_hora: string;
+  glucemia_mgdl: number | null;
+};
+
+const WEEK_DAYS = ["L", "M", "X", "J", "V", "S", "D"];
+
+export function PatientDashboardPanel({ nextAppointmentValue, nextAppointmentStatus, alertCount, records }: PatientDashboardPanelProps) {
   const [activeModal, setActiveModal] = useState<ModalType | null>(null);
   const [submitState, setSubmitState] = useState<SubmitState>(initialState);
   const router = useRouter();
@@ -39,13 +48,6 @@ export function PatientDashboardPanel({ nextAppointmentValue, nextAppointmentSta
   function openModal(type: ModalType) {
     setSubmitState(initialState);
     setActiveModal(type);
-  }
-
-  function closeModal() {
-    if (!submitState.loading) {
-      setActiveModal(null);
-      setSubmitState(initialState);
-    }
   }
 
   async function submitForm(event: FormEvent<HTMLFormElement>) {
@@ -78,7 +80,8 @@ export function PatientDashboardPanel({ nextAppointmentValue, nextAppointmentSta
       }
 
       form.reset();
-      setSubmitState({ loading: false, message: data.message ?? "Guardado correctamente.", error: null });
+      setActiveModal(null);
+      setSubmitState(initialState);
       router.refresh();
     } catch {
       setSubmitState({ loading: false, message: null, error: "No se pudo conectar con el servidor." });
@@ -107,8 +110,8 @@ export function PatientDashboardPanel({ nextAppointmentValue, nextAppointmentSta
           </div>
 
           <div className="chart-grid">
-            <MiniLineChart title="Tendencia de glucemia" />
-            <MiniBarChart title="Adherencia semanal" />
+            <GlucoseLineChart records={records} />
+            <AdherenceBarChart records={records} />
           </div>
         </article>
       </section>
@@ -127,16 +130,13 @@ export function PatientDashboardPanel({ nextAppointmentValue, nextAppointmentSta
       </section>
 
       {activeModal ? (
-        <div className="modal-backdrop" role="presentation" onMouseDown={closeModal}>
-          <section className="action-modal" role="dialog" aria-modal="true" aria-labelledby="quick-action-title" onMouseDown={(event) => event.stopPropagation()}>
+        <div className="modal-backdrop" role="presentation">
+          <section className="action-modal" role="dialog" aria-modal="true" aria-labelledby="quick-action-title">
             <div className="section-heading">
               <div>
                 <p className="eyebrow">Acción rápida</p>
                 <h2 id="quick-action-title">{modalTitle}</h2>
               </div>
-              <button className="modal-close" type="button" onClick={closeModal} aria-label="Cerrar">
-                x
-              </button>
             </div>
 
             <form className="modal-form" onSubmit={submitForm}>
@@ -145,12 +145,7 @@ export function PatientDashboardPanel({ nextAppointmentValue, nextAppointmentSta
               {activeModal === "medication" ? <MedicationFields /> : null}
 
               {submitState.error ? <p className="form-error">{submitState.error}</p> : null}
-              {submitState.message ? <p className="form-success">{submitState.message}</p> : null}
-
               <div className="modal-actions">
-                <button className="secondary-button" type="button" onClick={closeModal} disabled={submitState.loading}>
-                  Cancelar
-                </button>
                 <button className="primary-button" type="submit" disabled={submitState.loading}>
                   {submitState.loading ? "Guardando..." : "Guardar"}
                 </button>
@@ -324,35 +319,142 @@ function MetricCard({
   );
 }
 
-function MiniLineChart({ title }: { title: string }) {
+function GlucoseLineChart({ records }: { records: PatientRecordChartPoint[] }) {
+  const glucoseRecords = records.filter((record) => typeof record.glucemia_mgdl === "number").slice(-12);
+  const chart = buildGlucoseChart(glucoseRecords);
+
   return (
     <div className="chart-card">
-      <h3>{title}</h3>
-      <svg viewBox="0 0 320 150" role="img" aria-label={title}>
-        <path className="chart-grid-line" d="M24 34H300M24 76H300M24 118H300" />
-        <path className="chart-line" d="M28 112L72 84L116 104L160 58L204 92L248 44L292 54" />
+      <div className="chart-heading-row">
+        <h3>Evolución de glucemia</h3>
+        <span>mg/dL</span>
+      </div>
+      <svg viewBox="0 0 320 170" role="img" aria-label="Evolución de glucemia en el tiempo">
+        <rect className="glucose-band low" x="34" y={chart.yFor(70)} width="258" height={chart.bottom - chart.yFor(70)} />
+        <rect className="glucose-band normal" x="34" y={chart.yFor(180)} width="258" height={chart.yFor(70) - chart.yFor(180)} />
+        <rect className="glucose-band high" x="34" y={chart.top} width="258" height={chart.yFor(180) - chart.top} />
+        <path className="chart-grid-line" d="M34 34H292M34 74H292M34 114H292M34 144H292" />
+        <path className="glucose-reference low-line" d={`M34 ${chart.yFor(70)}H292`} />
+        <path className="glucose-reference high-line" d={`M34 ${chart.yFor(180)}H292`} />
+        {chart.points.length ? <path className="chart-line smooth-line" d={chart.path} /> : null}
         <g className="chart-dots">
-          <circle cx="72" cy="84" r="4" />
-          <circle cx="160" cy="58" r="4" />
-          <circle cx="248" cy="44" r="4" />
-          <circle cx="292" cy="54" r="4" />
+          {chart.points.map((point) => (
+            <circle cx={point.x} cy={point.y} r="4" key={point.key} />
+          ))}
+        </g>
+        <g className="chart-axis-labels">
+          <text x="34" y="162">
+            {chart.firstLabel}
+          </text>
+          <text x="292" y="162" textAnchor="end">
+            {chart.lastLabel}
+          </text>
         </g>
       </svg>
+      <div className="chart-legend" aria-hidden="true">
+        <span><i className="legend-low" />Bajo</span>
+        <span><i className="legend-normal" />Normal</span>
+        <span><i className="legend-high" />Alto</span>
+      </div>
+      {!chart.points.length ? <p className="chart-empty">Sin mediciones de glucemia.</p> : null}
     </div>
   );
 }
 
-function MiniBarChart({ title }: { title: string }) {
-  const bars = [38, 18, 52, 30, 66, 58];
+function AdherenceBarChart({ records }: { records: PatientRecordChartPoint[] }) {
+  const bars = buildAdherenceBars(records);
+  const maxCount = Math.max(1, ...bars.map((bar) => bar.count));
 
   return (
     <div className="chart-card">
-      <h3>{title}</h3>
-      <div className="bar-chart" aria-label={title}>
-        {bars.map((height, index) => (
-          <span style={{ height: `${height}%` }} key={`${height}-${index}`} />
+      <div className="chart-heading-row">
+        <h3>Adherencia semanal</h3>
+        <span>registros</span>
+      </div>
+      <div className="bar-chart adherence-chart" aria-label="Adherencia semanal por cantidad de registros cargados">
+        {bars.map((bar) => (
+          <div className="adherence-bar" key={bar.day}>
+            <span style={{ height: `${bar.count ? Math.max(12, (bar.count / maxCount) * 100) : 0}%` }} />
+            <strong>{bar.day}</strong>
+            <small>{bar.count}</small>
+          </div>
         ))}
       </div>
     </div>
   );
+}
+
+function buildGlucoseChart(records: PatientRecordChartPoint[]) {
+  const top = 16;
+  const bottom = 144;
+  const left = 34;
+  const right = 292;
+  const values = records.map((record) => Number(record.glucemia_mgdl));
+  const minValue = Math.min(60, ...values);
+  const maxValue = Math.max(220, ...values);
+  const range = Math.max(1, maxValue - minValue);
+  const yFor = (value: number) => bottom - ((value - minValue) / range) * (bottom - top);
+  const points = records.map((record, index) => {
+    const x = records.length === 1 ? (left + right) / 2 : left + (index / (records.length - 1)) * (right - left);
+    const y = yFor(Number(record.glucemia_mgdl));
+
+    return {
+      x,
+      y,
+      key: record.id_registro
+    };
+  });
+
+  return {
+    top,
+    bottom,
+    yFor,
+    points,
+    path: toSmoothPath(points),
+    firstLabel: records[0] ? formatShortDate(records[0].fecha_hora) : "",
+    lastLabel: records.at(-1) ? formatShortDate(records.at(-1)?.fecha_hora) : ""
+  };
+}
+
+function toSmoothPath(points: { x: number; y: number }[]) {
+  if (!points.length) return "";
+  if (points.length === 1) return `M${points[0].x} ${points[0].y}`;
+
+  return points.reduce((path, point, index) => {
+    if (index === 0) return `M${point.x} ${point.y}`;
+
+    const previous = points[index - 1];
+    const controlX = (previous.x + point.x) / 2;
+    return `${path} C${controlX} ${previous.y}, ${controlX} ${point.y}, ${point.x} ${point.y}`;
+  }, "");
+}
+
+function buildAdherenceBars(records: PatientRecordChartPoint[]) {
+  const anchor = records.at(-1)?.fecha_hora ? new Date(records.at(-1)?.fecha_hora ?? "") : new Date();
+  const monday = new Date(anchor);
+  const day = (monday.getDay() + 6) % 7;
+  monday.setDate(monday.getDate() - day);
+  monday.setHours(0, 0, 0, 0);
+
+  return WEEK_DAYS.map((weekDay, index) => {
+    const dayStart = new Date(monday);
+    dayStart.setDate(monday.getDate() + index);
+    const dayEnd = new Date(dayStart);
+    dayEnd.setDate(dayStart.getDate() + 1);
+
+    return {
+      day: weekDay,
+      count: records.filter((record) => {
+        const date = new Date(record.fecha_hora);
+        return date >= dayStart && date < dayEnd;
+      }).length
+    };
+  });
+}
+
+function formatShortDate(value: string | undefined) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleDateString("es-AR", { day: "2-digit", month: "short" });
 }
