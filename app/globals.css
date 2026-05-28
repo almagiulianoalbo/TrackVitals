@@ -1221,6 +1221,119 @@ a:hover {
   opacity: 0.68;
 }
 
+.photo-editor-modal {
+  width: min(100%, 560px);
+}
+
+.photo-crop-preview {
+  position: relative;
+  width: min(100%, 260px);
+  aspect-ratio: 1;
+  margin: 18px auto 0;
+  border: 1px solid rgba(21, 117, 186, 0.24);
+  border-radius: 50%;
+  background:
+    linear-gradient(135deg, rgba(229, 243, 251, 0.42), rgba(238, 248, 234, 0.3)),
+    rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 18px 44px rgba(18, 103, 168, 0.16);
+  cursor: grab;
+  overflow: hidden;
+  touch-action: none;
+}
+
+.photo-crop-preview.dragging {
+  cursor: grabbing;
+}
+
+.photo-crop-preview img {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform-origin: center;
+  pointer-events: none;
+  user-select: none;
+}
+
+.photo-crop-backdrop {
+  width: 118%;
+  height: 118%;
+  object-fit: cover;
+  filter: blur(18px) saturate(1.06);
+  opacity: 0.34;
+  transform: translate(-50%, -50%) scale(1.08);
+}
+
+.photo-crop-foreground {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photo-editor-hint {
+  margin: 10px 0 0;
+  color: var(--ink-500);
+  font-size: 0.88rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.photo-editor-controls {
+  display: grid;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.photo-editor-controls > div {
+  display: grid;
+  gap: 8px;
+}
+
+.photo-editor-controls span {
+  color: var(--ink-700);
+  font-size: 0.86rem;
+  font-weight: 900;
+}
+
+.photo-zoom-buttons {
+  display: inline-grid;
+  grid-template-columns: 44px minmax(74px, auto) 44px;
+  gap: 8px;
+  align-items: center;
+  width: fit-content;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-soft);
+  padding: 5px;
+}
+
+.photo-zoom-buttons button {
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--ink-900);
+  cursor: pointer;
+  font-size: 1.25rem;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.photo-zoom-buttons button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.photo-zoom-buttons strong {
+  color: var(--ink-700);
+  font-size: 0.9rem;
+  font-weight: 950;
+  text-align: center;
+}
+
 .profile-card {
   min-height: auto;
 }
@@ -1683,6 +1796,344 @@ a:hover {
 .signs-explorer {
   display: grid;
   gap: 16px;
+}
+
+.patient-calendar-page {
+  display: grid;
+  gap: 16px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(229, 243, 251, 0.66)),
+    var(--surface);
+}
+
+.patient-calendar-toolbar {
+  display: grid;
+  gap: 12px;
+}
+
+.calendar-month-controls {
+  display: grid;
+  grid-template-columns: 42px minmax(160px, auto) 42px;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  border: 1px solid rgba(21, 117, 186, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 5px;
+}
+
+.calendar-month-controls button {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--surface-soft);
+  color: var(--ink-900);
+  cursor: pointer;
+  font-size: 1.35rem;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.calendar-month-controls strong {
+  color: var(--ink-700);
+  font-size: 0.95rem;
+  font-weight: 950;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.patient-calendar-layout {
+  display: grid;
+  gap: 16px;
+}
+
+.records-calendar {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  border: 1px solid rgba(215, 230, 236, 0.92);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(229, 243, 251, 0.56), rgba(238, 248, 234, 0.4)),
+    var(--surface);
+  padding: 14px;
+}
+
+.calendar-weekdays,
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.calendar-weekdays span {
+  color: var(--ink-500);
+  font-size: 0.76rem;
+  font-weight: 950;
+  text-align: center;
+}
+
+.calendar-day {
+  display: grid;
+  gap: 4px;
+  min-height: 82px;
+  align-content: start;
+  position: relative;
+  border: 1px solid rgba(215, 230, 236, 0.9);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--ink-900);
+  cursor: pointer;
+  padding: 8px;
+  text-align: left;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.calendar-day:hover,
+.calendar-day.active {
+  border-color: rgba(21, 117, 186, 0.38);
+  box-shadow: 0 12px 28px rgba(18, 103, 168, 0.12);
+  transform: translateY(-1px);
+}
+
+.calendar-day.active {
+  background: var(--ink-900);
+  color: white;
+}
+
+.calendar-day.muted {
+  opacity: 0.42;
+}
+
+.calendar-day.normal:not(.active) {
+  background: rgba(238, 248, 234, 0.9);
+}
+
+.calendar-day.high:not(.active) {
+  background: #fff3f4;
+}
+
+.calendar-day.low:not(.active) {
+  background: #eef5ff;
+}
+
+.calendar-day span {
+  font-weight: 950;
+}
+
+.calendar-day i {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--green-600);
+  box-shadow: 0 0 0 3px rgba(65, 184, 111, 0.14);
+}
+
+.calendar-day.high i {
+  background: var(--red-500);
+  box-shadow: 0 0 0 3px rgba(216, 61, 76, 0.14);
+}
+
+.calendar-day.low i {
+  background: var(--blue-600);
+  box-shadow: 0 0 0 3px rgba(21, 117, 186, 0.14);
+}
+
+.calendar-day.active i {
+  background: white;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18);
+}
+
+.calendar-day strong {
+  width: fit-content;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--ink-900);
+  font-size: 0.74rem;
+  font-weight: 950;
+  padding: 3px 7px;
+}
+
+.calendar-day.active strong {
+  background: rgba(255, 255, 255, 0.18);
+  color: white;
+}
+
+.calendar-day em {
+  color: inherit;
+  font-size: 0.78rem;
+  font-style: normal;
+  font-weight: 850;
+  opacity: 0.82;
+}
+
+.calendar-day-panel {
+  display: grid;
+  align-content: start;
+}
+
+.calendar-selected-day {
+  display: grid;
+  gap: 18px;
+  border: 1px solid rgba(215, 230, 236, 0.92);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(229, 243, 251, 0.54)),
+    var(--surface);
+  padding: 18px;
+}
+
+.calendar-day-heading {
+  display: grid;
+  gap: 12px;
+  border-bottom: 1px solid rgba(215, 230, 236, 0.9);
+  padding-bottom: 16px;
+}
+
+.calendar-selected-day h3 {
+  margin: 0;
+  color: var(--ink-900);
+  font-size: 1.25rem;
+  line-height: 1.15;
+}
+
+.calendar-selected-day span {
+  color: var(--ink-500);
+  font-weight: 650;
+}
+
+.calendar-insights {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.calendar-insights span {
+  width: fit-content;
+  border: 1px solid rgba(21, 117, 186, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.76);
+  color: var(--ink-700);
+  font-size: 0.82rem;
+  font-weight: 900;
+  padding: 7px 10px;
+}
+
+.calendar-day-records {
+  display: flex;
+  gap: 9px;
+  max-height: 240px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.calendar-record-chip {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-width: 220px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  color: inherit;
+  cursor: pointer;
+  padding: 7px 13px 7px 7px;
+  text-align: left;
+}
+
+.calendar-record-chip.active {
+  border-color: rgba(21, 117, 186, 0.38);
+  background: rgba(229, 243, 251, 0.86);
+}
+
+.calendar-record-chip strong,
+.calendar-record-chip small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.calendar-record-chip strong {
+  color: var(--ink-900);
+  font-size: 0.92rem;
+}
+
+.calendar-record-chip small {
+  margin-top: 2px;
+  color: var(--ink-500);
+  font-weight: 850;
+}
+
+.patient-record-detail {
+  display: grid;
+  gap: 15px;
+}
+
+.patient-record-detail-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.patient-record-detail-heading h3 {
+  margin: 0;
+  color: var(--ink-900);
+  font-size: clamp(1.35rem, 4vw, 2rem);
+  line-height: 1.08;
+}
+
+.patient-record-detail-heading span:not(.glucose-badge) {
+  color: var(--ink-500);
+  font-weight: 850;
+}
+
+.record-detail-lines {
+  display: grid;
+  gap: 0;
+  margin: 0;
+}
+
+.record-detail-lines div {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.6fr) minmax(0, 1fr);
+  gap: 14px;
+  align-items: baseline;
+  border-top: 1px solid rgba(215, 230, 236, 0.86);
+  padding: 12px 0;
+}
+
+.record-detail-lines dt {
+  color: var(--ink-500);
+  font-size: 0.76rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.record-detail-lines dd {
+  margin: 0;
+  color: var(--ink-900);
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+
+.calendar-record-empty {
+  margin: 0;
+  color: var(--ink-700);
+  font-weight: 800;
+  line-height: 1.45;
 }
 
 .signs-summary {
@@ -2556,6 +3007,16 @@ button.patient-list-item:last-child {
   .signs-toolbar {
     grid-template-columns: minmax(260px, 1fr) minmax(220px, 0.65fr) auto;
     align-items: end;
+  }
+
+  .patient-calendar-toolbar {
+    grid-template-columns: minmax(280px, 1fr) auto;
+    align-items: end;
+  }
+
+  .patient-calendar-layout {
+    grid-template-columns: minmax(430px, 1.08fr) minmax(340px, 0.92fr);
+    align-items: start;
   }
 
   .signs-layout {
