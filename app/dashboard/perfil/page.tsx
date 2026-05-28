@@ -1,10 +1,12 @@
 import { redirect } from "next/navigation";
 import { DashboardShell } from "@/components/DashboardChrome";
+import { ProfilePhotoUploader } from "@/components/ProfilePhotoUploader";
 import { getCurrentSession } from "@/lib/auth";
 import { roleLabels, type SessionUser } from "@/lib/auth-types";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 type PatientProfile = {
+  foto_url: string | null;
   fecha_nacimiento: string | null;
   sexo: string | null;
   dni: string | null;
@@ -14,6 +16,7 @@ type PatientProfile = {
 };
 
 type DoctorProfile = {
+  foto_url: string | null;
   matricula: string | null;
 };
 
@@ -29,33 +32,23 @@ export default async function ProfilePage() {
   return (
     <DashboardShell user={user} activeItem="perfil" subtitle="Datos de cuenta y perfil clínico.">
       <section className="profile-grid" aria-label="Perfil">
-        <article className="dashboard-card profile-card">
-          <div className="section-heading">
-            <div>
-              <p className="eyebrow">Perfil</p>
-              <h2>Datos principales</h2>
-            </div>
-          </div>
+        <ProfilePhotoUploader
+          currentUrl={profile.patient?.foto_url ?? profile.doctor?.foto_url ?? null}
+          name={user.name}
+          roleLabel={roleLabels[user.role]}
+        />
 
-          <dl className="account-list">
-            <div>
-              <dt>Nombre</dt>
-              <dd>{user.name}</dd>
-            </div>
-            <div>
-              <dt>Email</dt>
-              <dd>{user.email}</dd>
-            </div>
-            <div>
-              <dt>Tipo de usuario</dt>
-              <dd>{roleLabels[user.role]}</dd>
-            </div>
-            <div>
-              <dt>ID</dt>
-              <dd>{user.userId}</dd>
-            </div>
-          </dl>
-        </article>
+        <ProfileInfoCard
+          eyebrow="Cuenta"
+          title="Identidad digital"
+          lead={user.email}
+          badge={roleLabels[user.role]}
+          items={[
+            ["Nombre", user.name],
+            ["Tipo de usuario", roleLabels[user.role]],
+            ["ID", `#${user.userId}`]
+          ]}
+        />
 
         {user.role === "paciente" ? (
           <PatientProfileCard profile={profile.patient} />
@@ -69,39 +62,25 @@ export default async function ProfilePage() {
 
 function PatientProfileCard({ profile }: { profile: PatientProfile | null }) {
   return (
-    <article className="dashboard-card profile-card">
+    <article className="dashboard-card profile-card profile-detail-card">
       <div className="section-heading">
         <div>
           <p className="eyebrow">Información clínica</p>
-          <h2>Datos médicos</h2>
+          <h2>Resumen médico</h2>
         </div>
       </div>
 
-      <dl className="account-list">
-        <div>
-          <dt>Tipo de diabetes</dt>
-          <dd>{formatDiabetes(profile?.tipo_diabetes)}</dd>
-        </div>
-        <div>
-          <dt>Médico cabecera</dt>
-          <dd>{profile?.id_medico_cabecera ? `#${profile.id_medico_cabecera}` : "No asignado"}</dd>
-        </div>
-        <div>
-          <dt>Teléfono</dt>
-          <dd>{profile?.telefono || "No cargado"}</dd>
-        </div>
-        <div>
-          <dt>DNI</dt>
-          <dd>{profile?.dni || "No cargado"}</dd>
-        </div>
-        <div>
-          <dt>Edad</dt>
-          <dd>{formatAge(profile?.fecha_nacimiento)}</dd>
-        </div>
-        <div>
-          <dt>Sexo</dt>
-          <dd>{formatSex(profile?.sexo)}</dd>
-        </div>
+      <div className="profile-feature">
+        <span>Tipo de diabetes</span>
+        <strong>{formatDiabetes(profile?.tipo_diabetes)}</strong>
+        <em>{profile?.id_medico_cabecera ? `Médico #${profile.id_medico_cabecera}` : "Sin médico asignado"}</em>
+      </div>
+
+      <dl className="profile-info-grid">
+        <InfoTile label="Edad" value={formatAge(profile?.fecha_nacimiento)} />
+        <InfoTile label="Sexo" value={formatSex(profile?.sexo)} />
+        <InfoTile label="DNI" value={profile?.dni || "No cargado"} />
+        <InfoTile label="Teléfono" value={profile?.telefono || "No cargado"} />
       </dl>
     </article>
   );
@@ -109,27 +88,71 @@ function PatientProfileCard({ profile }: { profile: PatientProfile | null }) {
 
 function DoctorProfileCard({ profile }: { profile: DoctorProfile | null }) {
   return (
-    <article className="dashboard-card profile-card">
+    <article className="dashboard-card profile-card profile-detail-card">
       <div className="section-heading">
         <div>
           <p className="eyebrow">Información profesional</p>
-          <h2>Datos médicos</h2>
+          <h2>Credenciales</h2>
         </div>
       </div>
 
-      <dl className="account-list">
-        <div>
-          <dt>Matrícula</dt>
-          <dd>{profile?.matricula || "No cargada"}</dd>
-        </div>
-        <div>
-          <dt>Rol</dt>
-          <dd>Médico tratante</dd>
-        </div>
-      </dl>
+      <div className="profile-feature">
+        <span>Matrícula</span>
+        <strong>{profile?.matricula || "No cargada"}</strong>
+        <em>Perfil profesional activo</em>
+      </div>
 
-      <p className="profile-note">La edición del perfil va a quedar conectada cuando armemos el formulario de configuración.</p>
+      <dl className="profile-info-grid">
+        <InfoTile label="Rol" value="Médico tratante" />
+        <InfoTile label="Estado" value="Disponible para seguimiento" />
+      </dl>
     </article>
+  );
+}
+
+function ProfileInfoCard({
+  eyebrow,
+  title,
+  lead,
+  badge,
+  items
+}: {
+  eyebrow: string;
+  title: string;
+  lead: string;
+  badge: string;
+  items: [string, string][];
+}) {
+  return (
+    <article className="dashboard-card profile-card profile-detail-card">
+      <div className="section-heading">
+        <div>
+          <p className="eyebrow">{eyebrow}</p>
+          <h2>{title}</h2>
+        </div>
+        <span className="profile-status-pill">{badge}</span>
+      </div>
+
+      <div className="profile-feature compact">
+        <span>Email</span>
+        <strong>{lead}</strong>
+      </div>
+
+      <dl className="profile-info-grid">
+        {items.map(([label, value]) => (
+          <InfoTile label={label} value={value} key={label} />
+        ))}
+      </dl>
+    </article>
+  );
+}
+
+function InfoTile({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <dt>{label}</dt>
+      <dd>{value}</dd>
+    </div>
   );
 }
 
@@ -145,7 +168,7 @@ async function getProfile(user: SessionUser) {
     if (user.role === "paciente") {
       const { data } = await supabase
         .from("pacientes")
-        .select("fecha_nacimiento,sexo,dni,telefono,tipo_diabetes,id_medico_cabecera")
+        .select("foto_url,fecha_nacimiento,sexo,dni,telefono,tipo_diabetes,id_medico_cabecera")
         .eq("id_paciente", user.userId)
         .maybeSingle();
 
@@ -155,7 +178,7 @@ async function getProfile(user: SessionUser) {
       };
     }
 
-    const { data } = await supabase.from("medicos").select("matricula").eq("id_medico", user.userId).maybeSingle();
+    const { data } = await supabase.from("medicos").select("foto_url,matricula").eq("id_medico", user.userId).maybeSingle();
 
     return {
       ...fallback,

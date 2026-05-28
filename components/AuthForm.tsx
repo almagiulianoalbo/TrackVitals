@@ -14,6 +14,7 @@ export function AuthForm({ mode }: AuthFormProps) {
   const [role, setRole] = useState<UserRole>("paciente");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const isRegister = mode === "register";
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -113,9 +114,20 @@ export function AuthForm({ mode }: AuthFormProps) {
       <Field
         label="Contraseña"
         name="password"
-        type="password"
+        type={showPassword ? "text" : "password"}
         autoComplete={isRegister ? "new-password" : "current-password"}
         minLength={isRegister ? 8 : undefined}
+        endAdornment={
+          <button
+            className="password-toggle"
+            type="button"
+            onClick={() => setShowPassword((current) => !current)}
+            aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+            title={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+          >
+            {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+          </button>
+        }
         required
       />
 
@@ -137,16 +149,44 @@ export function AuthForm({ mode }: AuthFormProps) {
   );
 }
 
+function EyeIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24">
+      <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+function EyeOffIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24">
+      <path d="M3 3l18 18" />
+      <path d="M10.6 6.2A10.4 10.4 0 0 1 12 6c6 0 9.5 6 9.5 6a18.2 18.2 0 0 1-3.1 3.7" />
+      <path d="M6.4 6.7A18.2 18.2 0 0 0 2.5 12s3.5 6 9.5 6a10.2 10.2 0 0 0 4.1-.8" />
+      <path d="M9.9 9.9A3 3 0 0 0 14.1 14.1" />
+    </svg>
+  );
+}
+
 type FieldProps = React.InputHTMLAttributes<HTMLInputElement> & {
   label: string;
   name: string;
+  endAdornment?: React.ReactNode;
 };
 
-function Field({ label, name, ...props }: FieldProps) {
+function Field({ label, name, endAdornment, ...props }: FieldProps) {
   return (
     <label className="field">
       <span>{label}</span>
-      <input name={name} {...props} />
+      {endAdornment ? (
+        <span className="input-with-action">
+          <input name={name} {...props} />
+          {endAdornment}
+        </span>
+      ) : (
+        <input name={name} {...props} />
+      )}
     </label>
   );
 }

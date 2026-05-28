@@ -68,23 +68,27 @@ async function getDashboardData(user: SessionUser): Promise<DashboardData> {
     const supabase = getSupabaseAdmin();
 
     if (user.role === "medico") {
-      const [{ count }, { data }, { count: alertCount }] = await Promise.all([
+      const [{ count }, { data: patients }, { count: alertCount }] = await Promise.all([
         supabase.from("pacientes").select("id_paciente", { count: "exact", head: true }).eq("id_medico_cabecera", user.userId),
         supabase
           .from("pacientes")
           .select("id_paciente,nombre,apellido,email,fecha_nacimiento,tipo_diabetes")
           .eq("id_medico_cabecera", user.userId)
-          .order("apellido", { ascending: true })
-          .limit(5),
+          .order("apellido", { ascending: true }),
         supabase
           .from("alerta")
           .select("id_alerta,pacientes!inner(id_medico_cabecera)", { count: "exact", head: true })
           .eq("pacientes.id_medico_cabecera", user.userId)
       ]);
 
+      const assignedPatients = (patients ?? []) as DoctorPatientPreview[];
+      const latestRecordByPatient = await getLatestRecordByPatient(assignedPatients.map((patient) => patient.id_paciente));
+
       return {
         ...fallback,
-        assignedPatients: (data ?? []) as DoctorPatientPreview[],
+        assignedPatients: assignedPatients
+          .toSorted((left, right) => compareQuickPatients(left, right, latestRecordByPatient))
+          .slice(0, 4),
         assignedPatientsCount: count ?? 0,
         doctorAlertCount: alertCount ?? 0
       };
@@ -123,4 +127,43 @@ async function getDashboardData(user: SessionUser): Promise<DashboardData> {
 
 function toSupabaseTimestamp(date: Date) {
   return date.toISOString().replace("T", " ").slice(0, 19);
+}
+
+async function getLatestRecordByPatient(patientIds: number[]) {
+  const latestRecordByPatient = new Map<number, string>();
+
+  if (!patientIds.length) {
+    return latestRecordByPatient;
+  }
+
+  const supabase = getSupabaseAdmin();
+  const { data } = await supabase
+    .from("registros_diarios")
+    .select("id_paciente,fecha_hora")
+    .in("id_paciente", patientIds)
+    .order("fecha_hora", { ascending: false });
+
+  (data ?? []).forEach((record) => {
+    const patientId = Number(record.id_paciente);
+
+    if (!latestRecordByPatient.has(patientId) && record.fecha_hora) {
+      latestRecordByPatient.set(patientId, record.fecha_hora);
+    }
+  });
+
+  return latestRecordByPatient;
+}
+
+function compareQuickPatients(left: DoctorPatientPreview, right: DoctorPatientPreview, latestRecordByPatient: Map<number, string>) {
+  const leftRecord = latestRecordByPatient.get(left.id_paciente);
+  const rightRecord = latestRecordByPatient.get(right.id_paciente);
+
+  if (leftRecord && rightRecord && leftRecord !== rightRecord) {
+    return new Date(rightRecord).getTime() - new Date(leftRecord).getTime();
+  }
+
+  if (leftRecord && !rightRecord) return -1;
+  if (!leftRecord && rightRecord) return 1;
+
+  return `${left.apellido} ${left.nombre}`.localeCompare(`${right.apellido} ${right.nombre}`, "es");
 }

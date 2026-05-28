@@ -1,9 +1,7 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { DashboardShell } from "@/components/DashboardChrome";
-import { DataList, type ListItem } from "@/components/dashboard/DataViews";
+import { AppointmentsBoard, type AppointmentBoardRow } from "@/components/AppointmentsBoard";
 import { getCurrentSession } from "@/lib/auth";
-import { formatDateTime, formatPatientName, formatValue } from "@/lib/dashboard-format";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 type AppointmentRow = {
@@ -15,97 +13,54 @@ type AppointmentRow = {
   medicos?: { nombre: string | null; apellido: string | null } | { nombre: string | null; apellido: string | null }[] | null;
 };
 
-type AppointmentsPageProps = {
-  searchParams: Promise<{
-    vista?: string | string[];
-  }>;
-};
-
-export default async function AppointmentsPage({ searchParams }: AppointmentsPageProps) {
+export default async function AppointmentsPage() {
   const user = await getCurrentSession();
   if (!user) redirect("/login");
 
-  const params = await searchParams;
-  const view = getFirstParam(params.vista) === "historial" ? "historial" : "pendientes";
-  const appointments = await getAppointments(user.role, user.userId, view);
-
-  const pendingTitle = user.role === "medico" ? "Agenda" : "Turnos pendientes";
+  const appointments = await getAppointments(user.role, user.userId);
 
   return (
     <DashboardShell user={user} activeItem="turnos" subtitle="Turnos y consultas programadas.">
-      <section className="dashboard-card profile-card">
-        <div className="section-heading">
-          <div>
-            <p className="eyebrow">Turnos</p>
-            <h2>{view === "historial" ? "Historial de turnos" : pendingTitle}</h2>
-          </div>
-          <div className="period-tabs" aria-label="Vista de turnos">
-            <Link className={view === "pendientes" ? "active" : ""} href="/dashboard/turnos">
-              Pendientes
-            </Link>
-            <Link className={view === "historial" ? "active" : ""} href="/dashboard/turnos?vista=historial">
-              Historial
-            </Link>
-          </div>
-        </div>
-
-        <DataList
-          eyebrow=""
-          title=""
-          emptyMessage={view === "historial" ? "Todavía no hay turnos pasados." : "No hay turnos pendientes."}
-          items={appointments.map((appointment) => toListItem(appointment, user.role))}
-          framed={false}
-          showHeading={false}
-        />
-      </section>
+      <AppointmentsBoard appointments={appointments} role={user.role} />
     </DashboardShell>
   );
 }
 
-async function getAppointments(role: "paciente" | "medico", userId: number, view: "pendientes" | "historial") {
+async function getAppointments(role: "paciente" | "medico", userId: number) {
   try {
     const supabase = getSupabaseAdmin();
     const filterColumn = role === "medico" ? "id_medico" : "id_paciente";
     const now = toSupabaseTimestamp(new Date());
-    let query = supabase
-      .from("turnos")
-      .select("id_turno,fecha_hora,motivo,estado,pacientes(nombre,apellido),medicos(nombre,apellido)")
-      .eq(filterColumn, userId);
 
-    if (view === "pendientes") {
-      query = query.eq("estado", "pendiente").gte("fecha_hora", now).order("fecha_hora", { ascending: true });
-    } else {
-      query = query.lt("fecha_hora", now).order("fecha_hora", { ascending: false });
-    }
+    const [{ data: pendingData, error: pendingError }, { data: historyData, error: historyError }] = await Promise.all([
+      supabase
+        .from("turnos")
+        .select("id_turno,fecha_hora,motivo,estado,pacientes(nombre,apellido),medicos(nombre,apellido)")
+        .eq(filterColumn, userId)
+        .eq("estado", "pendiente")
+        .gte("fecha_hora", now)
+        .order("fecha_hora", { ascending: true }),
+      supabase
+        .from("turnos")
+        .select("id_turno,fecha_hora,motivo,estado,pacientes(nombre,apellido),medicos(nombre,apellido)")
+        .eq(filterColumn, userId)
+        .lt("fecha_hora", now)
+        .order("fecha_hora", { ascending: false })
+    ]);
 
-    const { data, error } = await query;
-
-    if (error) {
-      console.error(error);
+    if (pendingError || historyError) {
+      console.error(pendingError ?? historyError);
       return [];
     }
 
-    return (data ?? []) as AppointmentRow[];
+    return [
+      ...((pendingData ?? []) as AppointmentRow[]).map((appointment) => ({ ...appointment, vista: "pendientes" as const })),
+      ...((historyData ?? []) as AppointmentRow[]).map((appointment) => ({ ...appointment, vista: "historial" as const }))
+    ] satisfies AppointmentBoardRow[];
   } catch (error) {
     console.error(error);
     return [];
   }
-}
-
-function toListItem(appointment: AppointmentRow, role: "paciente" | "medico"): ListItem {
-  return {
-    id: appointment.id_turno,
-    title: formatDateTime(appointment.fecha_hora),
-    meta: role === "medico" ? formatPatientName(appointment.pacientes) : `Dr/a. ${formatPatientName(appointment.medicos)}`,
-    details: [
-      { label: "Motivo", value: formatValue(appointment.motivo) },
-      { label: "Estado", value: formatValue(appointment.estado, "Sin estado") }
-    ]
-  };
-}
-
-function getFirstParam(value: string | string[] | undefined) {
-  return Array.isArray(value) ? value[0] : value;
 }
 
 function toSupabaseTimestamp(date: Date) {

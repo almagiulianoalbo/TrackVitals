@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { LogoutButton } from "@/components/LogoutButton";
 import { roleLabels, type SessionUser } from "@/lib/auth-types";
+import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 export type DashboardNavKey =
   | "panel"
@@ -29,10 +30,12 @@ type NavItem = {
   key?: DashboardNavKey;
 };
 
-export function DashboardShell({ user, activeItem, subtitle, children }: DashboardShellProps) {
+export async function DashboardShell({ user, activeItem, subtitle, children }: DashboardShellProps) {
+  const photoUrl = await getUserPhotoUrl(user);
+
   return (
     <main className="dashboard-shell">
-      <DashboardSidebar user={user} activeItem={activeItem} />
+      <DashboardSidebar user={user} activeItem={activeItem} photoUrl={photoUrl} />
 
       <section className="dashboard-main">
         <header className="dashboard-topbar">
@@ -50,7 +53,7 @@ export function DashboardShell({ user, activeItem, subtitle, children }: Dashboa
   );
 }
 
-function DashboardSidebar({ user, activeItem }: { user: SessionUser; activeItem: DashboardNavKey }) {
+function DashboardSidebar({ user, activeItem, photoUrl }: { user: SessionUser; activeItem: DashboardNavKey; photoUrl: string | null }) {
   const items: NavItem[] =
     user.role === "medico"
       ? [
@@ -105,7 +108,9 @@ function DashboardSidebar({ user, activeItem }: { user: SessionUser; activeItem:
       </nav>
 
       <div className="sidebar-user">
-        <span aria-hidden="true">{getInitials(user.name)}</span>
+        <span className="sidebar-avatar" aria-hidden="true">
+          {photoUrl ? <img src={photoUrl} alt="" /> : getInitials(user.name)}
+        </span>
         <div>
           <strong>{user.name}</strong>
           <small>{user.email}</small>
@@ -113,6 +118,20 @@ function DashboardSidebar({ user, activeItem }: { user: SessionUser; activeItem:
       </div>
     </aside>
   );
+}
+
+async function getUserPhotoUrl(user: SessionUser) {
+  try {
+    const supabase = getSupabaseAdmin();
+    const table = user.role === "paciente" ? "pacientes" : "medicos";
+    const idColumn = user.role === "paciente" ? "id_paciente" : "id_medico";
+    const { data } = await supabase.from(table).select("foto_url").eq(idColumn, user.userId).maybeSingle();
+
+    return typeof data?.foto_url === "string" && data.foto_url ? data.foto_url : null;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
 }
 
 export function getInitials(name: string) {

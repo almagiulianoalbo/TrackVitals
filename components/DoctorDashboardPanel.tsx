@@ -114,6 +114,13 @@ export function DoctorDashboardPanel({
     setActiveModal(type);
   }
 
+  function closeModal() {
+    if (!submitState.loading) {
+      setActiveModal(null);
+      setSubmitState(initialState);
+    }
+  }
+
   async function submitForm(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -273,6 +280,9 @@ export function DoctorDashboardPanel({
                 <p className="eyebrow">Acción rápida</p>
                 <h2 id="doctor-action-title">{activeModal === "patient" ? "Agregar paciente" : "Crear prescripción"}</h2>
               </div>
+              <button className="modal-close" type="button" onClick={closeModal} disabled={submitState.loading} aria-label="Cerrar">
+                ×
+              </button>
             </div>
 
             <form className="modal-form" onSubmit={submitForm}>

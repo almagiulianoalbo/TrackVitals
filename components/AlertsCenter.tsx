@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { formatDateTime, formatPatientName, formatValue } from "@/lib/dashboard-format";
 
 type PatientName = { nombre: string | null; apellido: string | null } | { nombre: string | null; apellido: string | null }[] | null;
@@ -22,23 +23,25 @@ const VIEW_OPTIONS: { value: ViewFilter; label: string }[] = [
 ];
 
 export function AlertsCenter({ alerts }: { alerts: AlertCenterRow[] }) {
+  const [alertRows, setAlertRows] = useState(alerts);
   const [query, setQuery] = useState("");
   const [view, setView] = useState<ViewFilter>("todas");
   const [type, setType] = useState("todos");
   const [selectedId, setSelectedId] = useState<number | null>(alerts[0]?.id_alerta ?? null);
+  const router = useRouter();
 
   const typeOptions = useMemo(() => {
     const types = new Set<string>();
-    alerts.forEach((alert) => {
+    alertRows.forEach((alert) => {
       if (alert.tipo) types.add(alert.tipo);
     });
     return Array.from(types).sort((a, b) => a.localeCompare(b, "es"));
-  }, [alerts]);
+  }, [alertRows]);
 
   const filteredAlerts = useMemo(() => {
     const cleanQuery = query.trim().toLowerCase();
 
-    return alerts.filter((alert) => {
+    return alertRows.filter((alert) => {
       const matchesView = view === "todas" || (view === "pendientes" ? !alert.vista : Boolean(alert.vista));
       const matchesType = type === "todos" || alert.tipo === type;
       const haystack = [alert.id_alerta, alert.tipo, alert.valor_disparador, formatPatientName(alert.pacientes), formatDateTime(alert.fecha)]
@@ -48,11 +51,15 @@ export function AlertsCenter({ alerts }: { alerts: AlertCenterRow[] }) {
 
       return matchesView && matchesType && (!cleanQuery || haystack.includes(cleanQuery));
     });
-  }, [alerts, query, type, view]);
+  }, [alertRows, query, type, view]);
 
   const selectedAlert = filteredAlerts.find((alert) => alert.id_alerta === selectedId) ?? filteredAlerts[0] ?? null;
-  const pendingCount = alerts.filter((alert) => !alert.vista).length;
-  const highCount = alerts.filter((alert) => getAlertTone(alert) === "high").length;
+  const pendingCount = alertRows.filter((alert) => !alert.vista).length;
+  const highCount = alertRows.filter((alert) => getAlertTone(alert) === "high").length;
+
+  useEffect(() => {
+    setAlertRows(alerts);
+  }, [alerts]);
 
   useEffect(() => {
     if (!filteredAlerts.length) {
@@ -64,6 +71,29 @@ export function AlertsCenter({ alerts }: { alerts: AlertCenterRow[] }) {
       setSelectedId(filteredAlerts[0].id_alerta);
     }
   }, [filteredAlerts, selectedId]);
+
+  useEffect(() => {
+    if (!selectedAlert || selectedAlert.vista) return;
+
+    const alertId = selectedAlert.id_alerta;
+    setAlertRows((current) => current.map((alert) => (alert.id_alerta === alertId ? { ...alert, vista: true } : alert)));
+
+    fetch("/api/dashboard/alertas", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id_alerta: alertId })
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("No se pudo marcar la alerta como vista.");
+        }
+        router.refresh();
+      })
+      .catch((error) => {
+        console.error(error);
+        setAlertRows((current) => current.map((alert) => (alert.id_alerta === alertId ? { ...alert, vista: false } : alert)));
+      });
+  }, [router, selectedAlert]);
 
   return (
     <section className="dashboard-card alerts-center">
@@ -107,7 +137,7 @@ export function AlertsCenter({ alerts }: { alerts: AlertCenterRow[] }) {
         </div>
       </div>
 
-      {alerts.length ? (
+      {alertRows.length ? (
         <div className="alerts-layout">
           <div className="alerts-stack" aria-label="Lista de alertas">
             {filteredAlerts.length ? (
