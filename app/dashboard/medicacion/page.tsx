@@ -1,20 +1,9 @@
 import { redirect } from "next/navigation";
 import { DashboardShell } from "@/components/DashboardChrome";
-import { DataList, type ListItem, unauthorizedList } from "@/components/dashboard/DataViews";
+import { MedicationStudio, type MedicationRow } from "@/components/MedicationStudio";
+import { unauthorizedList } from "@/components/dashboard/DataViews";
 import { getCurrentSession } from "@/lib/auth";
-import { formatDate, formatValue } from "@/lib/dashboard-format";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
-
-type MedicationRow = {
-  id_medicamento: number;
-  nombre: string | null;
-  dosis: number | string | null;
-  unidad: string | null;
-  frecuencia: string | null;
-  fecha_inicio: string | null;
-  fecha_fin: string | null;
-  estado: string | null;
-};
 
 export default async function MedicationPage() {
   const user = await getCurrentSession();
@@ -32,12 +21,7 @@ export default async function MedicationPage() {
 
   return (
     <DashboardShell user={user} activeItem="medicacion" subtitle="Medicación indicada y dosis actuales.">
-      <DataList
-        eyebrow="Medicación"
-        title="Medicamentos cargados"
-        emptyMessage="Todavía no hay medicación cargada."
-        items={medications.map(toListItem)}
-      />
+      <MedicationStudio medications={medications} />
     </DashboardShell>
   );
 }
@@ -61,20 +45,4 @@ async function getMedications(patientId: number) {
     console.error(error);
     return [];
   }
-}
-
-function toListItem(medication: MedicationRow): ListItem {
-  const dose = [medication.dosis, medication.unidad].filter(Boolean).join(" ");
-
-  return {
-    id: medication.id_medicamento,
-    title: medication.nombre || `Medicamento #${medication.id_medicamento}`,
-    meta: formatValue(medication.estado, "Sin estado"),
-    details: [
-      { label: "Dosis", value: dose || "No cargado" },
-      { label: "Frecuencia", value: formatValue(medication.frecuencia) },
-      { label: "Inicio", value: formatDate(medication.fecha_inicio) },
-      { label: "Fin", value: formatDate(medication.fecha_fin) }
-    ]
-  };
 }

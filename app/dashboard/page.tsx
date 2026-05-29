@@ -24,7 +24,11 @@ type PatientNextAppointment = {
 export type PatientRecordChartPoint = {
   id_registro: number;
   fecha_hora: string;
+  momento: string | null;
   glucemia_mgdl: number | null;
+  carbohidratos_g: number | null;
+  tipo_insulina: string | null;
+  dosis_unidades: number | string | null;
 };
 
 export default async function DashboardPage() {
@@ -107,7 +111,7 @@ async function getDashboardData(user: SessionUser): Promise<DashboardData> {
       supabase.from("alerta").select("id_alerta", { count: "exact", head: true }).eq("id_paciente", user.userId).eq("vista", false),
       supabase
         .from("registros_diarios")
-        .select("id_registro,fecha_hora,glucemia_mgdl")
+        .select("id_registro,fecha_hora,momento,glucemia_mgdl,carbohidratos_g,tipo_insulina,dosis_unidades")
         .eq("id_paciente", user.userId)
         .order("fecha_hora", { ascending: false })
         .limit(80)
