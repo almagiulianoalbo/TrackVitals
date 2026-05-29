@@ -30,7 +30,7 @@ export default async function ProfilePage() {
   const profile = await getProfile(user);
 
   return (
-    <DashboardShell user={user} activeItem="perfil" subtitle="Datos de cuenta y perfil clínico.">
+    <DashboardShell user={user} activeItem="perfil" subtitle="Datos de cuenta y perfil clínico." hideTopbar>
       <section className="profile-grid" aria-label="Perfil">
         <ProfilePhotoUploader
           currentUrl={profile.patient?.foto_url ?? profile.doctor?.foto_url ?? null}

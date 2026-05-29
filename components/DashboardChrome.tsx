@@ -21,6 +21,7 @@ type DashboardShellProps = {
   user: SessionUser;
   activeItem: DashboardNavKey;
   subtitle: string;
+  hideTopbar?: boolean;
   children: React.ReactNode;
 };
 
@@ -30,22 +31,32 @@ type NavItem = {
   key?: DashboardNavKey;
 };
 
-export async function DashboardShell({ user, activeItem, subtitle, children }: DashboardShellProps) {
-  const photoUrl = await getUserPhotoUrl(user);
+export async function DashboardShell({ user, activeItem, subtitle, hideTopbar = false, children }: DashboardShellProps) {
+  const showTopbar = activeItem === "panel" && !hideTopbar;
+  const photoUrl = showTopbar ? await getUserPhotoUrl(user) : null;
 
   return (
     <main className="dashboard-shell">
-      <DashboardSidebar user={user} activeItem={activeItem} photoUrl={photoUrl} />
+      <DashboardSidebar user={user} activeItem={activeItem} />
 
       <section className="dashboard-main">
-        <header className="dashboard-topbar">
-          <div className="dashboard-title">
-            <p className="eyebrow">{roleLabels[user.role]}</p>
-            <h1>Hola, {user.name}</h1>
-            <p>{subtitle}</p>
-          </div>
-          <LogoutButton />
-        </header>
+        {showTopbar ? (
+          <header className="dashboard-topbar">
+            <div className="dashboard-title">
+              <div className="topbar-profile">
+                <span className="topbar-avatar" aria-hidden="true">
+                  {photoUrl ? <img src={photoUrl} alt="" /> : getInitials(user.name)}
+                </span>
+                <div>
+                  <p className="eyebrow">{roleLabels[user.role]}</p>
+                  <h1>{user.name}</h1>
+                </div>
+              </div>
+              <p>{subtitle}</p>
+            </div>
+            <LogoutButton />
+          </header>
+        ) : null}
 
         {children}
       </section>
@@ -53,7 +64,7 @@ export async function DashboardShell({ user, activeItem, subtitle, children }: D
   );
 }
 
-function DashboardSidebar({ user, activeItem, photoUrl }: { user: SessionUser; activeItem: DashboardNavKey; photoUrl: string | null }) {
+function DashboardSidebar({ user, activeItem }: { user: SessionUser; activeItem: DashboardNavKey }) {
   const items: NavItem[] =
     user.role === "medico"
       ? [
@@ -84,7 +95,6 @@ function DashboardSidebar({ user, activeItem, photoUrl }: { user: SessionUser; a
             <span>Track</span>
             <span>Vitals</span>
           </strong>
-          <span>{roleLabels[user.role]}</span>
         </div>
       </div>
 
@@ -109,16 +119,6 @@ function DashboardSidebar({ user, activeItem, photoUrl }: { user: SessionUser; a
           );
         })}
       </nav>
-
-      <div className="sidebar-user">
-        <span className="sidebar-avatar" aria-hidden="true">
-          {photoUrl ? <img src={photoUrl} alt="" /> : getInitials(user.name)}
-        </span>
-        <div>
-          <strong>{user.name}</strong>
-          <small>{user.email}</small>
-        </div>
-      </div>
     </aside>
   );
 }
