@@ -33,11 +33,14 @@ type NavItem = {
 
 export async function DashboardShell({ user, activeItem, subtitle, hideTopbar = false, children }: DashboardShellProps) {
   const showTopbar = activeItem === "panel" && !hideTopbar;
-  const photoUrl = showTopbar ? await getUserPhotoUrl(user) : null;
+  const [photoUrl, unreadMessageCount] = await Promise.all([
+    showTopbar ? getUserPhotoUrl(user) : Promise.resolve(null),
+    getUnreadMessageCount(user)
+  ]);
 
   return (
     <main className="dashboard-shell">
-      <DashboardSidebar user={user} activeItem={activeItem} />
+      <DashboardSidebar user={user} activeItem={activeItem} unreadMessageCount={unreadMessageCount} />
 
       <section className="dashboard-main">
         {showTopbar ? (
@@ -64,7 +67,15 @@ export async function DashboardShell({ user, activeItem, subtitle, hideTopbar = 
   );
 }
 
-function DashboardSidebar({ user, activeItem }: { user: SessionUser; activeItem: DashboardNavKey }) {
+function DashboardSidebar({
+  user,
+  activeItem,
+  unreadMessageCount
+}: {
+  user: SessionUser;
+  activeItem: DashboardNavKey;
+  unreadMessageCount: number;
+}) {
   const items: NavItem[] =
     user.role === "medico"
       ? [
@@ -74,6 +85,7 @@ function DashboardSidebar({ user, activeItem }: { user: SessionUser; activeItem:
           { label: "Registrar signos", href: "/dashboard/registrar-signos", key: "registrar-signos" },
           { label: "Turnos", href: "/dashboard/turnos", key: "turnos" },
           { label: "Alertas", href: "/dashboard/alertas", key: "alertas" },
+          { label: "Mensajes", href: "/dashboard/mensajes", key: "mensajes" },
           { label: "Perfil", href: "/dashboard/perfil", key: "perfil" }
         ]
       : [
@@ -105,6 +117,11 @@ function DashboardSidebar({ user, activeItem }: { user: SessionUser; activeItem:
             <>
               <span aria-hidden="true" />
               {item.label}
+              {item.key === "mensajes" && unreadMessageCount > 0 ? (
+                <b className="sidebar-badge" aria-label={`${unreadMessageCount} mensajes sin leer`}>
+                  {unreadMessageCount > 9 ? "9+" : unreadMessageCount}
+                </b>
+              ) : null}
             </>
           );
 
@@ -134,6 +151,29 @@ async function getUserPhotoUrl(user: SessionUser) {
   } catch (error) {
     console.error(error);
     return null;
+  }
+}
+
+async function getUnreadMessageCount(user: SessionUser) {
+  try {
+    const supabase = getSupabaseAdmin();
+    const filterColumn = user.role === "medico" ? "id_medico" : "id_paciente";
+    const { count, error } = await supabase
+      .from("mensajes")
+      .select("id_mensaje", { count: "exact", head: true })
+      .eq(filterColumn, user.userId)
+      .neq("remitente", user.role)
+      .eq("leido", false);
+
+    if (error) {
+      console.error(error);
+      return 0;
+    }
+
+    return count ?? 0;
+  } catch (error) {
+    console.error(error);
+    return 0;
   }
 }
 

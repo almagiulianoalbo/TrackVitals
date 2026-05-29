@@ -1,48 +1,32 @@
 import { redirect } from "next/navigation";
 import { DashboardShell } from "@/components/DashboardChrome";
-import { DataList, type ListItem } from "@/components/dashboard/DataViews";
+import { MessagesCenter, type MessageContact, type MessageRow } from "@/components/MessagesCenter";
 import { getCurrentSession } from "@/lib/auth";
-import { formatDateTime, formatPatientName, formatValue } from "@/lib/dashboard-format";
+import type { SessionUser } from "@/lib/auth-types";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
-
-type MessageRow = {
-  id_mensaje: number;
-  remitente: string | null;
-  asunto: string | null;
-  contenido: string | null;
-  leido: boolean | null;
-  fecha_hora: string;
-  pacientes?: { nombre: string | null; apellido: string | null } | { nombre: string | null; apellido: string | null }[] | null;
-  medicos?: { nombre: string | null; apellido: string | null } | { nombre: string | null; apellido: string | null }[] | null;
-};
 
 export default async function MessagesPage() {
   const user = await getCurrentSession();
   if (!user) redirect("/login");
 
-  const messages = await getMessages(user.role, user.userId);
+  const [messages, contacts] = await Promise.all([getMessages(user), getContacts(user)]);
 
   return (
     <DashboardShell user={user} activeItem="mensajes" subtitle="Mensajes entre paciente y médico.">
-      <DataList
-        eyebrow="Mensajes"
-        title="Mensajes cargados"
-        emptyMessage="Todavía no hay mensajes cargados."
-        items={messages.map((message) => toListItem(message, user.role))}
-      />
+      <MessagesCenter contacts={contacts} messages={messages} role={user.role} userId={user.userId} />
     </DashboardShell>
   );
 }
 
-async function getMessages(role: "paciente" | "medico", userId: number) {
+async function getMessages(user: SessionUser) {
   try {
     const supabase = getSupabaseAdmin();
-    const filterColumn = role === "medico" ? "id_medico" : "id_paciente";
+    const filterColumn = user.role === "medico" ? "id_medico" : "id_paciente";
     const { data, error } = await supabase
       .from("mensajes")
-      .select("id_mensaje,remitente,asunto,contenido,leido,fecha_hora,pacientes(nombre,apellido),medicos(nombre,apellido)")
-      .eq(filterColumn, userId)
-      .order("fecha_hora", { ascending: false });
+      .select("id_mensaje,id_paciente,id_medico,remitente,asunto,contenido,leido,fecha_hora,pacientes(nombre,apellido,email),medicos(nombre,apellido,email)")
+      .eq(filterColumn, user.userId)
+      .order("fecha_hora", { ascending: true });
 
     if (error) {
       console.error(error);
@@ -56,16 +40,68 @@ async function getMessages(role: "paciente" | "medico", userId: number) {
   }
 }
 
-function toListItem(message: MessageRow, role: "paciente" | "medico"): ListItem {
-  return {
-    id: message.id_mensaje,
-    title: message.asunto || `Mensaje #${message.id_mensaje}`,
-    meta: role === "medico" ? formatPatientName(message.pacientes) : `Dr/a. ${formatPatientName(message.medicos)}`,
-    details: [
-      { label: "Fecha", value: formatDateTime(message.fecha_hora) },
-      { label: "Remitente", value: formatValue(message.remitente) },
-      { label: "Leído", value: message.leido ? "Sí" : "No" },
-      { label: "Contenido", value: formatValue(message.contenido) }
-    ]
-  };
+async function getContacts(user: SessionUser) {
+  try {
+    const supabase = getSupabaseAdmin();
+
+    if (user.role === "medico") {
+      const { data, error } = await supabase
+        .from("pacientes")
+        .select("id_paciente,nombre,apellido,email")
+        .eq("id_medico_cabecera", user.userId)
+        .order("apellido", { ascending: true });
+
+      if (error) {
+        console.error(error);
+        return [];
+      }
+
+      return (data ?? []).map((patient) => ({
+        id: Number(patient.id_paciente),
+        name: `${patient.nombre ?? ""} ${patient.apellido ?? ""}`.trim() || `Paciente #${patient.id_paciente}`,
+        email: patient.email ?? null,
+        role: "paciente" as const
+      })) satisfies MessageContact[];
+    }
+
+    const { data: patient, error: patientError } = await supabase
+      .from("pacientes")
+      .select("id_medico_cabecera")
+      .eq("id_paciente", user.userId)
+      .maybeSingle();
+
+    if (patientError) {
+      console.error(patientError);
+      return [];
+    }
+
+    if (!patient?.id_medico_cabecera) {
+      return [];
+    }
+
+    const { data: doctor, error: doctorError } = await supabase
+      .from("medicos")
+      .select("id_medico,nombre,apellido,email")
+      .eq("id_medico", patient.id_medico_cabecera)
+      .maybeSingle();
+
+    if (doctorError) {
+      console.error(doctorError);
+      return [];
+    }
+
+    return doctor
+      ? [
+          {
+            id: Number(doctor.id_medico),
+            name: `Dr/a. ${`${doctor.nombre ?? ""} ${doctor.apellido ?? ""}`.trim() || `Médico #${doctor.id_medico}`}`,
+            email: doctor.email ?? null,
+            role: "medico" as const
+          }
+        ]
+      : [];
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
 }
