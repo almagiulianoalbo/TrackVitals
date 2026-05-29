@@ -1,18 +1,22 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap");
+
 :root {
-  --blue-700: #1267a8;
-  --blue-600: #1575ba;
-  --blue-100: #e5f3fb;
-  --green-600: #6ab545;
-  --green-100: #eef8ea;
-  --teal-600: #1f9bb4;
+  --blue-700: #0d1b2a;
+  --blue-600: #14b8a6;
+  --blue-100: #e6f7f3;
+  --green-600: #14b8a6;
+  --green-100: #e6f7f3;
+  --teal-600: #14b8a6;
+  --purple-600: #7b61ff;
   --red-500: #d83d4c;
-  --ink-900: #10233a;
-  --ink-700: #385167;
-  --ink-500: #607789;
-  --line: #d7e6ec;
+  --ink-900: #0d1b2a;
+  --ink-700: #334155;
+  --ink-500: #728092;
+  --line: #dfe7ed;
   --surface: #ffffff;
-  --surface-soft: #f5fafb;
-  --shadow: 0 24px 70px rgba(18, 103, 168, 0.13);
+  --surface-soft: #f2f4f7;
+  --shadow: 0 24px 70px rgba(13, 27, 42, 0.08);
+  --soft-shadow: 0 18px 44px rgba(13, 27, 42, 0.07);
 }
 
 * {
@@ -27,12 +31,17 @@ body {
   min-height: 100vh;
   margin: 0;
   background:
-    linear-gradient(135deg, rgba(229, 243, 251, 0.95), rgba(238, 248, 234, 0.88)),
-    #f7fbfd;
+    linear-gradient(135deg, rgba(230, 247, 243, 0.96), rgba(242, 244, 247, 0.82) 48%, rgba(255, 255, 255, 0.96)),
+    #f8fbfc;
   color: var(--ink-900);
-  font-family:
-    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-weight: 400;
   letter-spacing: 0;
+}
+
+strong,
+b {
+  font-weight: 700;
 }
 
 button,
@@ -44,7 +53,7 @@ textarea {
 
 a {
   color: var(--blue-600);
-  font-weight: 700;
+  font-weight: 600;
   text-decoration: none;
 }
 
@@ -56,6 +65,9 @@ a:hover {
   display: grid;
   min-height: 100vh;
   padding: 18px;
+  background:
+    linear-gradient(135deg, rgba(230, 247, 243, 0.98), rgba(242, 244, 247, 0.9)),
+    #f7fbfb;
 }
 
 .brand-panel {
@@ -66,11 +78,12 @@ a:hover {
   width: 100%;
   max-width: 520px;
   margin: auto;
-  padding: 26px 18px;
-  border: 1px solid rgba(215, 230, 236, 0.92);
-  border-radius: 8px;
+  padding: 34px 24px;
+  border: 1px solid rgba(223, 231, 237, 0.86);
+  border-radius: 34px;
   background: rgba(255, 255, 255, 0.94);
-  box-shadow: var(--shadow);
+  box-shadow: 0 26px 80px rgba(13, 27, 42, 0.1);
+  backdrop-filter: blur(18px);
 }
 
 .mobile-logo {
@@ -80,7 +93,7 @@ a:hover {
 }
 
 .mobile-logo img {
-  width: min(128px, 36vw);
+  width: min(122px, 34vw);
   height: auto;
 }
 
@@ -92,8 +105,9 @@ a:hover {
 .eyebrow {
   margin: 0 0 6px;
   color: var(--teal-600);
+  font-family: Manrope, Inter, ui-sans-serif, system-ui, sans-serif;
   font-size: 0.76rem;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0;
   text-transform: uppercase;
 }
@@ -101,14 +115,23 @@ a:hover {
 .auth-heading h2,
 .brand-lockup h1,
 .dashboard-header h1,
-.dashboard-card h2 {
+.dashboard-card h2,
+.dashboard-title h1,
+.section-heading h2,
+.profile-photo-copy h2,
+.sidebar-brand strong,
+.quick-action strong,
+.metric-card strong {
+  font-family: Manrope, Inter, ui-sans-serif, system-ui, sans-serif;
   margin: 0;
   letter-spacing: 0;
 }
 
 .auth-heading h2 {
-  font-size: clamp(1.75rem, 8vw, 2.35rem);
+  font-size: clamp(1.7rem, 7vw, 2.15rem);
+  font-weight: 700;
   line-height: 1.05;
+  color: var(--ink-900);
 }
 
 .auth-heading p:last-child,
@@ -125,29 +148,56 @@ a:hover {
 }
 
 .role-switch {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 6px;
-  padding: 5px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--surface-soft);
+  gap: 0;
+  padding: 4px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #f2f4f7, #edf1f4);
+  box-shadow: inset 0 1px 2px rgba(13, 27, 42, 0.06);
+  overflow: hidden;
+}
+
+.role-switch::before {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc(50% - 4px);
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--blue-700), #132945);
+  box-shadow: 0 12px 28px rgba(13, 27, 42, 0.18);
+  content: "";
+  transform: translateX(0);
+  transition:
+    transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 260ms ease;
+}
+
+.role-switch[data-role="medico"]::before {
+  transform: translateX(100%);
 }
 
 .role-switch button {
+  position: relative;
+  z-index: 1;
   min-height: 44px;
   border: 0;
-  border-radius: 6px;
+  border-radius: 999px;
   background: transparent;
   color: var(--ink-700);
   cursor: pointer;
-  font-weight: 800;
+  font-weight: 600;
+  transition:
+    color 180ms ease,
+    transform 180ms ease;
 }
 
 .role-switch button.active {
-  background: var(--surface);
-  color: var(--blue-700);
-  box-shadow: 0 8px 24px rgba(18, 103, 168, 0.12);
+  background: transparent;
+  color: white;
 }
 
 .field-grid {
@@ -163,7 +213,7 @@ a:hover {
 .field span {
   color: var(--ink-700);
   font-size: 0.9rem;
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .field input,
@@ -171,7 +221,7 @@ a:hover {
 .field textarea {
   width: 100%;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 10px;
   background: var(--surface);
   color: var(--ink-900);
   outline: none;
@@ -209,7 +259,7 @@ a:hover {
   color: var(--ink-700);
   cursor: pointer;
   font-size: 1.12rem;
-  font-weight: 900;
+  font-weight: 600;
   line-height: 1;
   transform: translateY(-50%);
 }
@@ -245,22 +295,23 @@ a:hover {
 .field select:focus,
 .field textarea:focus {
   border-color: var(--blue-600);
-  box-shadow: 0 0 0 4px rgba(21, 117, 186, 0.12);
+  box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.12);
 }
 
 .primary-button,
 .secondary-button {
+  font-family: Manrope, Inter, ui-sans-serif, system-ui, sans-serif;
   min-height: 48px;
   border: 0;
-  border-radius: 8px;
+  border-radius: 999px;
   cursor: pointer;
-  font-weight: 900;
+  font-weight: 600;
 }
 
 .primary-button {
-  background: linear-gradient(135deg, var(--blue-600), var(--green-600));
+  background: var(--blue-700);
   color: white;
-  box-shadow: 0 14px 30px rgba(21, 117, 186, 0.22);
+  box-shadow: 0 16px 34px rgba(13, 27, 42, 0.16);
 }
 
 .secondary-button {
@@ -283,7 +334,7 @@ a:hover {
   background: #fff3f4;
   color: #962533;
   padding: 11px 12px;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.45;
 }
 
@@ -294,7 +345,7 @@ a:hover {
   background: var(--green-100);
   color: #315f20;
   padding: 11px 12px;
-  font-weight: 800;
+  font-weight: 600;
   line-height: 1.45;
 }
 
@@ -318,17 +369,17 @@ a:hover {
 .dashboard-card,
 .metric-card,
 .quick-action {
-  border: 1px solid rgba(215, 230, 236, 0.92);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: var(--shadow);
+  border: 1px solid rgba(223, 231, 237, 0.86);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: var(--soft-shadow);
 }
 
 .dashboard-sidebar {
   display: grid;
   gap: 18px;
   align-content: start;
-  padding: 16px;
+  padding: 18px;
 }
 
 .sidebar-brand,
@@ -341,10 +392,28 @@ a:hover {
   min-width: 0;
 }
 
+.sidebar-brand {
+  gap: 14px;
+}
+
+.sidebar-brand::after {
+  order: 1;
+  width: 1px;
+  height: 42px;
+  border-radius: 999px;
+  background: rgba(13, 27, 42, 0.18);
+  content: "";
+  flex: 0 0 auto;
+}
+
 .sidebar-brand img {
-  width: 58px;
+  width: 56px;
   height: auto;
   flex: 0 0 auto;
+}
+
+.sidebar-brand > div {
+  order: 2;
 }
 
 .sidebar-brand strong,
@@ -365,13 +434,36 @@ a:hover {
 }
 
 .sidebar-brand strong {
-  font-size: 1.05rem;
+  color: var(--ink-900);
+  font-size: 1.02rem;
+}
+
+.sidebar-wordmark {
+  display: inline-flex;
+  gap: 0;
+  white-space: nowrap;
+}
+
+.sidebar-brand .sidebar-wordmark span {
+  display: inline;
+}
+
+.sidebar-wordmark span:first-child {
+  color: var(--blue-700);
+}
+
+.sidebar-wordmark span:last-child {
+  color: var(--blue-600);
 }
 
 .sidebar-brand span,
 .sidebar-user small {
   color: var(--ink-500);
-  font-weight: 700;
+  font-weight: 600;
+}
+
+.sidebar-brand > div > span {
+  font-weight: 400;
 }
 
 .sidebar-nav {
@@ -389,27 +481,27 @@ a:hover {
   min-height: 44px;
   min-width: max-content;
   border: 1px solid transparent;
-  border-radius: 8px;
+  border-radius: 999px;
   background: transparent;
   color: var(--ink-700);
   cursor: pointer;
-  font-weight: 850;
+  font-weight: 600;
   padding: 0 13px;
   text-decoration: none;
 }
 
 .sidebar-nav a span,
 .sidebar-nav button span {
-  width: 13px;
-  height: 13px;
-  border-radius: 4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
   background: var(--line);
 }
 
 .sidebar-nav a.active,
 .sidebar-nav button.active {
-  border-color: var(--line);
-  background: var(--surface-soft);
+  border-color: rgba(20, 184, 166, 0.22);
+  background: var(--blue-100);
   color: var(--ink-900);
 }
 
@@ -432,9 +524,9 @@ a:hover {
   height: 54px;
   flex: 0 0 auto;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(31, 155, 180, 0.28), rgba(106, 181, 69, 0.34));
+  background: linear-gradient(135deg, rgba(20, 184, 166, 0.24), rgba(230, 247, 243, 0.9));
   color: var(--ink-900);
-  font-weight: 900;
+  font-weight: 600;
 }
 
 .sidebar-avatar {
@@ -470,13 +562,14 @@ a:hover {
   margin: 0;
   overflow-wrap: anywhere;
   font-size: clamp(1.8rem, 8vw, 3rem);
+  font-weight: 700;
   line-height: 1.05;
 }
 
 .dashboard-title p:last-child {
   margin: 8px 0 0;
   color: var(--ink-700);
-  font-weight: 650;
+  font-weight: 500;
 }
 
 .dashboard-content {
@@ -502,9 +595,9 @@ a:hover {
 }
 
 .quick-action.primary {
-  border-color: rgba(21, 117, 186, 0.18);
+  border-color: rgba(20, 184, 166, 0.24);
   background:
-    linear-gradient(135deg, rgba(229, 243, 251, 0.98), rgba(238, 248, 234, 0.96)),
+    linear-gradient(135deg, rgba(230, 247, 243, 0.98), rgba(255, 255, 255, 0.96)),
     white;
 }
 
@@ -514,11 +607,11 @@ a:hover {
   width: 38px;
   height: 38px;
   flex: 0 0 auto;
-  border-radius: 8px;
+  border-radius: 14px;
   background: var(--blue-600);
   color: white;
   font-size: 1.4rem;
-  font-weight: 900;
+  font-weight: 600;
 }
 
 .quick-action strong,
@@ -533,7 +626,7 @@ a:hover {
 .quick-action small {
   margin-top: 3px;
   color: var(--ink-500);
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.35;
 }
 
@@ -568,7 +661,7 @@ a:hover {
 
 .metric-card span {
   color: var(--ink-700);
-  font-weight: 850;
+  font-weight: 600;
 }
 
 .metric-card.danger span {
@@ -594,7 +687,7 @@ a:hover {
 .metric-card em {
   color: var(--green-600);
   font-style: normal;
-  font-weight: 800;
+  font-weight: 600;
   line-height: 1.35;
 }
 
@@ -706,7 +799,7 @@ a:hover {
   display: grid;
   gap: 22px;
   background:
-    linear-gradient(135deg, rgba(229, 243, 251, 0.92), rgba(238, 248, 234, 0.78)),
+    linear-gradient(135deg, rgba(230, 247, 243, 0.96), rgba(242, 244, 247, 0.72)),
     rgba(255, 255, 255, 0.96);
 }
 
@@ -722,6 +815,7 @@ a:hover {
 .section-heading h2 {
   margin: 0;
   font-size: clamp(1.35rem, 6vw, 2rem);
+  font-weight: 700;
   line-height: 1.12;
 }
 
@@ -744,7 +838,7 @@ a:hover {
   background: rgba(255, 255, 255, 0.78);
   color: var(--ink-700);
   cursor: pointer;
-  font-weight: 900;
+  font-weight: 600;
   padding: 0 14px;
   text-decoration: none;
 }
@@ -773,7 +867,7 @@ a:hover {
   max-height: min(90vh, 760px);
   overflow: auto;
   border: 1px solid rgba(215, 230, 236, 0.95);
-  border-radius: 8px;
+  border-radius: 24px;
   background: var(--surface);
   box-shadow: 0 30px 80px rgba(16, 35, 58, 0.24);
   padding: 18px;
@@ -795,7 +889,7 @@ a:hover {
   color: var(--ink-700);
   cursor: pointer;
   font-size: 1.1rem;
-  font-weight: 900;
+  font-weight: 600;
   line-height: 1;
 }
 
@@ -824,7 +918,7 @@ a:hover {
 .patient-row div span {
   margin-top: 3px;
   color: var(--ink-700);
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.4;
 }
 
@@ -859,7 +953,7 @@ a:hover {
 .chart-heading-row span {
   color: var(--ink-500);
   font-size: 0.78rem;
-  font-weight: 850;
+  font-weight: 600;
 }
 
 .chart-card svg {
@@ -927,7 +1021,7 @@ a:hover {
 .chart-axis-labels text {
   fill: var(--ink-500);
   font-size: 0.68rem;
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .chart-legend {
@@ -943,7 +1037,7 @@ a:hover {
   gap: 5px;
   color: var(--ink-500);
   font-size: 0.76rem;
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .chart-legend i {
@@ -968,7 +1062,7 @@ a:hover {
   margin: 8px 0 0;
   color: var(--ink-500);
   font-size: 0.85rem;
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .bar-chart {
@@ -1013,11 +1107,16 @@ a:hover {
   box-shadow: 0 8px 18px rgba(65, 184, 111, 0.18);
 }
 
+.compact-record-chart .adherence-bar span {
+  background: linear-gradient(180deg, var(--blue-600) 0%, #1aa7b8 52%, var(--blue-700) 100%);
+  box-shadow: 0 10px 22px rgba(20, 184, 166, 0.18);
+}
+
 .adherence-bar strong,
 .adherence-bar small {
   color: var(--ink-500);
   font-size: 0.72rem;
-  font-weight: 900;
+  font-weight: 600;
 }
 
 .adherence-bar small {
@@ -1063,7 +1162,7 @@ a:hover {
 
 .record-list-item span {
   color: var(--ink-900);
-  font-weight: 900;
+  font-weight: 600;
   overflow-wrap: anywhere;
 }
 
@@ -1104,7 +1203,7 @@ a:hover {
 .data-list-heading p {
   margin: 4px 0 0;
   color: var(--ink-500);
-  font-weight: 750;
+  font-weight: 600;
   line-height: 1.35;
 }
 
@@ -1124,14 +1223,14 @@ a:hover {
 .data-detail-list dt {
   color: var(--ink-500);
   font-size: 0.78rem;
-  font-weight: 850;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
 .data-detail-list dd {
   margin: 0;
   color: var(--ink-900);
-  font-weight: 780;
+  font-weight: 600;
   line-height: 1.4;
   overflow-wrap: anywhere;
 }
@@ -1172,7 +1271,7 @@ a:hover {
 .profile-photo-frame span {
   color: var(--ink-900);
   font-size: 2.35rem;
-  font-weight: 950;
+  font-weight: 600;
 }
 
 .profile-photo-copy {
@@ -1190,7 +1289,7 @@ a:hover {
 
 .profile-photo-copy span {
   color: var(--ink-500);
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .photo-upload-button {
@@ -1204,7 +1303,7 @@ a:hover {
   background: var(--ink-900);
   color: white;
   cursor: pointer;
-  font-weight: 900;
+  font-weight: 600;
   padding: 0 16px;
 }
 
@@ -1274,7 +1373,7 @@ a:hover {
   margin: 10px 0 0;
   color: var(--ink-500);
   font-size: 0.88rem;
-  font-weight: 800;
+  font-weight: 600;
   text-align: center;
 }
 
@@ -1292,7 +1391,7 @@ a:hover {
 .photo-editor-controls span {
   color: var(--ink-700);
   font-size: 0.86rem;
-  font-weight: 900;
+  font-weight: 600;
 }
 
 .photo-zoom-buttons {
@@ -1318,7 +1417,7 @@ a:hover {
   color: var(--ink-900);
   cursor: pointer;
   font-size: 1.25rem;
-  font-weight: 950;
+  font-weight: 600;
   line-height: 1;
 }
 
@@ -1330,7 +1429,7 @@ a:hover {
 .photo-zoom-buttons strong {
   color: var(--ink-700);
   font-size: 0.9rem;
-  font-weight: 950;
+  font-weight: 600;
   text-align: center;
 }
 
@@ -1355,7 +1454,7 @@ a:hover {
   background: rgba(229, 243, 251, 0.9);
   color: var(--blue-700);
   font-size: 0.82rem;
-  font-weight: 950;
+  font-weight: 600;
   padding: 0 12px;
 }
 
@@ -1374,7 +1473,7 @@ a:hover {
 .profile-info-grid dt {
   color: var(--ink-500);
   font-size: 0.76rem;
-  font-weight: 950;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
@@ -1388,7 +1487,7 @@ a:hover {
 .profile-feature em {
   color: var(--ink-700);
   font-style: normal;
-  font-weight: 850;
+  font-weight: 600;
   overflow-wrap: anywhere;
 }
 
@@ -1411,143 +1510,187 @@ a:hover {
   margin: 0;
   color: var(--ink-900);
   font-size: 1rem;
-  font-weight: 900;
+  font-weight: 600;
   line-height: 1.2;
   overflow-wrap: anywhere;
 }
 
 .patients-directory {
   display: grid;
-  gap: 16px;
+  gap: 18px;
 }
 
-.directory-count {
+.patients-directory-hero {
+  display: grid;
+  gap: 14px;
+  align-items: end;
+  border-bottom: 1px solid rgba(223, 231, 237, 0.92);
+  padding-bottom: 16px;
+}
+
+.patients-directory-hero h2 {
+  margin: 0;
+  font-family: Manrope, Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(1.8rem, 6vw, 3rem);
+  line-height: 1.04;
+}
+
+.patients-directory-hero p:not(.eyebrow) {
+  max-width: 560px;
+  margin: 8px 0 0;
+  color: var(--ink-500);
+  line-height: 1.45;
+}
+
+.patients-directory-hero > span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: fit-content;
-  border: 1px solid var(--line);
+  min-height: 38px;
+  border: 1px solid rgba(20, 184, 166, 0.22);
   border-radius: 999px;
-  background: var(--surface-soft);
-  color: var(--ink-700);
-  font-size: 0.88rem;
-  font-weight: 900;
-  padding: 9px 13px;
+  background: var(--blue-100);
+  color: var(--blue-700);
+  font-weight: 600;
+  padding: 0 14px;
 }
 
 .directory-search {
-  display: grid;
-  gap: 7px;
-}
-
-.directory-search span {
-  color: var(--ink-700);
-  font-size: 0.9rem;
-  font-weight: 850;
+  display: block;
 }
 
 .directory-search input {
   width: 100%;
-  min-height: 46px;
+  min-height: 52px;
   border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--surface);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.88);
   color: var(--ink-900);
   outline: none;
-  padding: 0 13px;
+  padding: 0 18px;
 }
 
 .directory-search input:focus {
   border-color: var(--blue-600);
-  box-shadow: 0 0 0 4px rgba(21, 117, 186, 0.12);
+  box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.12);
 }
 
-.patients-directory-grid {
+.patients-directory-layout {
   display: grid;
   gap: 16px;
 }
 
-.compact-patient-list {
+.patients-compact-list {
   display: grid;
-  gap: 8px;
+  gap: 7px;
   align-content: start;
   max-height: min(62vh, 620px);
   overflow: auto;
-  padding-right: 4px;
+  padding: 2px 4px 2px 0;
 }
 
-.compact-patient-row {
+.patients-compact-list button {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
-  min-height: 62px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--surface);
+  min-height: 68px;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  background: transparent;
   color: inherit;
   cursor: pointer;
   padding: 10px 12px;
   text-align: left;
   transition:
+    background 160ms ease,
     border-color 160ms ease,
     box-shadow 160ms ease,
     transform 160ms ease;
 }
 
-.compact-patient-row:hover,
-.compact-patient-row.active {
-  border-color: rgba(21, 117, 186, 0.42);
-  box-shadow: 0 12px 28px rgba(18, 103, 168, 0.1);
+.patients-compact-list button:hover,
+.patients-compact-list button.active {
+  border-color: rgba(20, 184, 166, 0.2);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 12px 28px rgba(13, 27, 42, 0.06);
   transform: translateY(-1px);
 }
 
-.compact-patient-row.active {
-  background: linear-gradient(135deg, rgba(229, 243, 251, 0.98), rgba(238, 248, 234, 0.82));
+.patients-compact-list button.active {
+  background:
+    linear-gradient(135deg, rgba(230, 247, 243, 0.92), rgba(255, 255, 255, 0.94)),
+    white;
+  box-shadow:
+    inset 4px 0 0 var(--blue-600),
+    0 14px 32px rgba(13, 27, 42, 0.07);
 }
 
-.compact-patient-row strong,
-.compact-patient-row small {
+.patients-compact-list strong,
+.patients-compact-list small {
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.compact-patient-row strong {
+.patients-compact-list strong {
   color: var(--ink-900);
-  font-size: 0.98rem;
+  font-family: Manrope, Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
 }
 
-.compact-patient-row small,
-.compact-patient-row em {
+.patients-compact-list small,
+.patients-compact-list em {
   color: var(--ink-500);
   font-size: 0.82rem;
   font-style: normal;
-  font-weight: 800;
+  font-weight: 500;
+}
+
+.patients-compact-list em {
+  max-width: 118px;
+  overflow: hidden;
+  border: 1px solid rgba(223, 231, 237, 0.9);
+  border-radius: 999px;
+  background: rgba(242, 244, 247, 0.74);
+  color: var(--ink-700);
+  padding: 6px 9px;
+  text-overflow: ellipsis;
+  text-transform: capitalize;
+  white-space: nowrap;
 }
 
 .patient-detail-panel {
   display: grid;
-  gap: 16px;
+  gap: 22px;
   align-content: start;
-  border: 1px solid rgba(215, 230, 236, 0.92);
-  border-radius: 8px;
+  min-height: 100%;
+  border: 1px solid rgba(223, 231, 237, 0.86);
+  border-radius: 24px;
   background:
-    linear-gradient(135deg, rgba(229, 243, 251, 0.72), rgba(238, 248, 234, 0.58)),
+    radial-gradient(circle at 100% 0%, rgba(230, 247, 243, 0.9), transparent 34%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(242, 244, 247, 0.72)),
     var(--surface);
-  padding: 16px;
+  box-shadow: var(--soft-shadow);
+  padding: 22px;
 }
 
 .patient-detail-header {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   min-width: 0;
 }
 
-.patient-detail-header h3 {
+.patient-detail-header h2 {
   margin: 0;
   color: var(--ink-900);
-  font-size: 1.18rem;
-  line-height: 1.18;
+  font-family: Manrope, Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(1.6rem, 4vw, 2.35rem);
+  line-height: 1.04;
   overflow-wrap: anywhere;
 }
 
@@ -1555,12 +1698,53 @@ a:hover {
   display: block;
   margin-top: 4px;
   color: var(--ink-500);
-  font-weight: 850;
+  font-weight: 500;
 }
 
-.compact-detail-list {
-  border-top: 1px solid rgba(215, 230, 236, 0.9);
-  padding-top: 2px;
+.patient-detail-feature {
+  display: grid;
+  gap: 6px;
+  border-left: 4px solid var(--blue-600);
+  padding-left: 14px;
+}
+
+.patient-detail-feature span,
+.patient-detail-grid dt {
+  color: var(--ink-500);
+  font-size: 0.76rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.patient-detail-feature strong {
+  color: var(--ink-900);
+  font-family: Manrope, Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.1;
+  text-transform: capitalize;
+}
+
+.patient-detail-grid {
+  display: grid;
+  gap: 0 18px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+}
+
+.patient-detail-grid div {
+  display: grid;
+  gap: 5px;
+  border-top: 1px solid rgba(223, 231, 237, 0.9);
+  padding: 14px 0;
+}
+
+.patient-detail-grid dd {
+  margin: 0;
+  color: var(--ink-900);
+  font-weight: 500;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
 }
 
 .prescriptions-board {
@@ -1574,10 +1758,10 @@ a:hover {
   align-items: baseline;
   gap: 6px;
   width: fit-content;
-  border: 1px solid rgba(65, 184, 111, 0.28);
+  border: 1px solid rgba(20, 184, 166, 0.26);
   border-radius: 999px;
-  background: rgba(238, 248, 234, 0.88);
-  color: var(--green-600);
+  background: rgba(230, 247, 243, 0.88);
+  color: var(--blue-700);
   padding: 8px 13px;
 }
 
@@ -1589,7 +1773,7 @@ a:hover {
 
 .prescription-summary span {
   font-size: 0.86rem;
-  font-weight: 900;
+  font-weight: 600;
 }
 
 .prescription-toolbar {
@@ -1610,7 +1794,7 @@ a:hover {
   background: var(--surface);
   color: var(--ink-700);
   cursor: pointer;
-  font-weight: 900;
+  font-weight: 600;
   padding: 0 12px;
 }
 
@@ -1655,13 +1839,13 @@ a:hover {
 
 .prescription-row:hover,
 .prescription-row.active {
-  border-color: rgba(65, 184, 111, 0.46);
-  box-shadow: 0 12px 28px rgba(64, 125, 86, 0.11);
+  border-color: rgba(20, 184, 166, 0.32);
+  box-shadow: 0 12px 28px rgba(13, 27, 42, 0.08);
   transform: translateY(-1px);
 }
 
 .prescription-row.active {
-  background: linear-gradient(135deg, rgba(238, 248, 234, 0.95), rgba(255, 255, 255, 0.98));
+  background: linear-gradient(135deg, rgba(230, 247, 243, 0.95), rgba(255, 255, 255, 0.98));
 }
 
 .prescription-row strong,
@@ -1682,7 +1866,7 @@ a:hover {
   color: var(--ink-500);
   font-size: 0.82rem;
   font-style: normal;
-  font-weight: 850;
+  font-weight: 600;
 }
 
 .status-dot {
@@ -1694,12 +1878,12 @@ a:hover {
 
 .status-dot.activa,
 .status-pill.activa {
-  background: #41b86f;
+  background: var(--blue-600);
 }
 
 .status-dot.pausada,
 .status-pill.pausada {
-  background: #efc46c;
+  background: #8ea3b4;
 }
 
 .status-dot.finalizada,
@@ -1729,7 +1913,7 @@ a:hover {
   border-radius: 999px;
   color: white;
   font-size: 0.76rem;
-  font-weight: 950;
+  font-weight: 600;
   padding: 6px 9px;
   text-transform: uppercase;
 }
@@ -1745,7 +1929,7 @@ a:hover {
 .prescription-detail-header p {
   margin: 0;
   color: var(--ink-500);
-  font-weight: 850;
+  font-weight: 600;
 }
 
 .prescription-detail-grid {
@@ -1766,14 +1950,14 @@ a:hover {
 .prescription-notes span {
   color: var(--ink-500);
   font-size: 0.76rem;
-  font-weight: 900;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
 .prescription-detail-grid dd {
   margin: 5px 0 0;
   color: var(--ink-900);
-  font-weight: 850;
+  font-weight: 600;
   overflow-wrap: anywhere;
 }
 
@@ -1784,11 +1968,11 @@ a:hover {
 
 .prescription-notes p {
   margin: 0;
-  border-left: 4px solid rgba(65, 184, 111, 0.42);
+  border-left: 4px solid rgba(20, 184, 166, 0.38);
   border-radius: 6px;
-  background: rgba(238, 248, 234, 0.78);
+  background: rgba(230, 247, 243, 0.74);
   color: var(--ink-700);
-  font-weight: 760;
+  font-weight: 600;
   line-height: 1.5;
   padding: 11px 12px;
 }
@@ -1834,14 +2018,14 @@ a:hover {
   color: var(--ink-900);
   cursor: pointer;
   font-size: 1.35rem;
-  font-weight: 950;
+  font-weight: 600;
   line-height: 1;
 }
 
 .calendar-month-controls strong {
   color: var(--ink-700);
   font-size: 0.95rem;
-  font-weight: 950;
+  font-weight: 600;
   text-align: center;
   white-space: nowrap;
 }
@@ -1873,7 +2057,7 @@ a:hover {
 .calendar-weekdays span {
   color: var(--ink-500);
   font-size: 0.76rem;
-  font-weight: 950;
+  font-weight: 600;
   text-align: center;
 }
 
@@ -1925,7 +2109,7 @@ a:hover {
 }
 
 .calendar-day span {
-  font-weight: 950;
+  font-weight: 600;
 }
 
 .calendar-day i {
@@ -1960,7 +2144,7 @@ a:hover {
   background: rgba(255, 255, 255, 0.72);
   color: var(--ink-900);
   font-size: 0.74rem;
-  font-weight: 950;
+  font-weight: 600;
   padding: 3px 7px;
 }
 
@@ -1973,7 +2157,7 @@ a:hover {
   color: inherit;
   font-size: 0.78rem;
   font-style: normal;
-  font-weight: 850;
+  font-weight: 600;
   opacity: 0.82;
 }
 
@@ -2009,7 +2193,7 @@ a:hover {
 
 .calendar-selected-day span {
   color: var(--ink-500);
-  font-weight: 650;
+  font-weight: 500;
 }
 
 .calendar-insights {
@@ -2025,7 +2209,7 @@ a:hover {
   background: rgba(255, 255, 255, 0.76);
   color: var(--ink-700);
   font-size: 0.82rem;
-  font-weight: 900;
+  font-weight: 600;
   padding: 7px 10px;
 }
 
@@ -2073,7 +2257,7 @@ a:hover {
 .calendar-record-chip small {
   margin-top: 2px;
   color: var(--ink-500);
-  font-weight: 850;
+  font-weight: 600;
 }
 
 .patient-record-detail {
@@ -2097,7 +2281,7 @@ a:hover {
 
 .patient-record-detail-heading span:not(.glucose-badge) {
   color: var(--ink-500);
-  font-weight: 850;
+  font-weight: 600;
 }
 
 .record-detail-lines {
@@ -2118,21 +2302,21 @@ a:hover {
 .record-detail-lines dt {
   color: var(--ink-500);
   font-size: 0.76rem;
-  font-weight: 950;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
 .record-detail-lines dd {
   margin: 0;
   color: var(--ink-900);
-  font-weight: 900;
+  font-weight: 600;
   overflow-wrap: anywhere;
 }
 
 .calendar-record-empty {
   margin: 0;
   color: var(--ink-700);
-  font-weight: 800;
+  font-weight: 600;
   line-height: 1.45;
 }
 
@@ -2157,7 +2341,7 @@ a:hover {
 
 .signs-summary span {
   font-size: 0.86rem;
-  font-weight: 900;
+  font-weight: 600;
 }
 
 .signs-toolbar {
@@ -2200,13 +2384,18 @@ a:hover {
 
 .sign-row:hover,
 .sign-row.active {
-  border-color: rgba(216, 61, 76, 0.34);
-  box-shadow: 0 12px 28px rgba(154, 45, 59, 0.1);
+  border-color: rgba(20, 184, 166, 0.2);
+  box-shadow: 0 12px 28px rgba(13, 27, 42, 0.06);
   transform: translateY(-1px);
 }
 
 .sign-row.active {
-  background: linear-gradient(135deg, rgba(255, 243, 244, 0.95), rgba(255, 255, 255, 0.98));
+  background:
+    linear-gradient(135deg, rgba(230, 247, 243, 0.92), rgba(255, 255, 255, 0.98)),
+    white;
+  box-shadow:
+    inset 4px 0 0 var(--blue-600),
+    0 14px 32px rgba(13, 27, 42, 0.07);
 }
 
 .sign-row strong,
@@ -2227,33 +2416,37 @@ a:hover {
   color: var(--ink-500);
   font-size: 0.82rem;
   font-style: normal;
-  font-weight: 850;
+  font-weight: 600;
 }
 
 .glucose-badge {
   display: inline-grid;
   place-items: center;
-  min-width: 48px;
-  height: 42px;
-  border-radius: 8px;
-  background: var(--surface-soft);
-  color: var(--ink-900);
-  font-weight: 950;
+  min-width: 54px;
+  height: 54px;
+  border-radius: 16px;
+  border: 1px solid rgba(20, 184, 166, 0.2);
+  background:
+    linear-gradient(135deg, rgba(230, 247, 243, 0.88), rgba(255, 255, 255, 0.62)),
+    rgba(255, 255, 255, 0.58);
+  color: var(--blue-700);
+  font-weight: 600;
+  box-shadow:
+    inset 0 -3px 0 rgba(20, 184, 166, 0.18),
+    0 10px 24px rgba(13, 27, 42, 0.04);
+  backdrop-filter: blur(10px);
 }
 
 .glucose-badge.low {
-  background: #eef5ff;
   color: var(--blue-700);
 }
 
 .glucose-badge.normal {
-  background: rgba(238, 248, 234, 0.92);
-  color: var(--green-600);
+  color: var(--blue-700);
 }
 
 .glucose-badge.high {
-  background: #fff3f4;
-  color: var(--red-500);
+  color: var(--blue-700);
 }
 
 .sign-detail {
@@ -2281,7 +2474,7 @@ a:hover {
   color: var(--ink-500);
   font-size: 0.76rem;
   font-style: normal;
-  font-weight: 900;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
@@ -2314,7 +2507,7 @@ a:hover {
 
 .selected-sign-card {
   display: grid;
-  gap: 14px;
+  gap: 18px;
 }
 
 .selected-sign-card h3 {
@@ -2325,34 +2518,35 @@ a:hover {
 
 .selected-sign-card span {
   color: var(--ink-500);
-  font-weight: 850;
+  font-weight: 600;
 }
 
 .sign-detail-grid {
   display: grid;
-  gap: 10px;
+  gap: 0 26px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   margin: 0;
 }
 
 .sign-detail-grid div {
-  border: 1px solid rgba(215, 230, 236, 0.9);
-  border-radius: 8px;
-  background: var(--surface-soft);
-  padding: 11px;
+  border-top: 1px solid rgba(223, 231, 237, 0.9);
+  padding: 15px 0;
 }
 
 .sign-detail-grid dt {
   color: var(--ink-500);
   font-size: 0.76rem;
-  font-weight: 900;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
 .sign-detail-grid dd {
-  margin: 5px 0 0;
+  margin: 6px 0 0;
   color: var(--ink-900);
-  font-weight: 850;
+  font-family: Manrope, Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.2;
   overflow-wrap: anywhere;
 }
 
@@ -2377,7 +2571,7 @@ a:hover {
   background: #fff3f4;
   color: var(--red-500);
   font-size: 0.86rem;
-  font-weight: 900;
+  font-weight: 600;
   padding: 8px 12px;
 }
 
@@ -2466,7 +2660,7 @@ a:hover {
   color: var(--ink-500);
   font-size: 0.82rem;
   font-style: normal;
-  font-weight: 850;
+  font-weight: 600;
 }
 
 .alert-severity {
@@ -2477,7 +2671,7 @@ a:hover {
   border-radius: 8px;
   background: var(--surface-soft);
   color: var(--ink-900);
-  font-weight: 950;
+  font-weight: 600;
 }
 
 .alert-severity.high {
@@ -2534,7 +2728,7 @@ a:hover {
 .alert-detail-header p {
   margin: 0;
   color: var(--ink-500);
-  font-weight: 850;
+  font-weight: 600;
 }
 
 .alert-status-pill {
@@ -2542,7 +2736,7 @@ a:hover {
   border-radius: 999px;
   color: white;
   font-size: 0.76rem;
-  font-weight: 950;
+  font-weight: 600;
   padding: 6px 9px;
   text-transform: uppercase;
 }
@@ -2567,7 +2761,7 @@ a:hover {
 .alert-value-panel span {
   color: rgba(255, 255, 255, 0.72);
   font-size: 0.8rem;
-  font-weight: 900;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
@@ -2593,20 +2787,20 @@ a:hover {
 .alert-detail-grid dt {
   color: var(--ink-500);
   font-size: 0.76rem;
-  font-weight: 900;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
 .alert-detail-grid dd {
   margin: 5px 0 0;
   color: var(--ink-900);
-  font-weight: 850;
+  font-weight: 600;
   overflow-wrap: anywhere;
 }
 
 .appointments-board {
   display: grid;
-  gap: 16px;
+  gap: 18px;
 }
 
 .appointments-summary {
@@ -2620,12 +2814,12 @@ a:hover {
   display: inline-flex;
   align-items: baseline;
   gap: 6px;
-  border: 1px solid rgba(21, 117, 186, 0.22);
+  border: 1px solid rgba(20, 184, 166, 0.22);
   border-radius: 999px;
-  background: rgba(229, 243, 251, 0.88);
+  background: var(--blue-100);
   color: var(--blue-700);
   font-size: 0.86rem;
-  font-weight: 900;
+  font-weight: 600;
   padding: 8px 12px;
 }
 
@@ -2638,31 +2832,35 @@ a:hover {
 .appointments-hero {
   display: grid;
   gap: 8px;
-  border: 1px solid rgba(21, 117, 186, 0.2);
-  border-radius: 8px;
+  border: 1px solid rgba(20, 184, 166, 0.18);
+  border-radius: 24px;
   background:
-    linear-gradient(135deg, rgba(229, 243, 251, 0.96), rgba(238, 248, 234, 0.72)),
+    radial-gradient(circle at 100% 0%, rgba(230, 247, 243, 0.92), transparent 36%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(242, 244, 247, 0.7)),
     var(--surface);
-  padding: 16px;
+  box-shadow: var(--soft-shadow);
+  padding: 20px;
 }
 
 .appointments-hero span {
   color: var(--ink-500);
   font-size: 0.78rem;
-  font-weight: 900;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
 .appointments-hero strong {
   color: var(--ink-900);
+  font-family: Manrope, Inter, ui-sans-serif, system-ui, sans-serif;
   font-size: clamp(1.35rem, 4vw, 2rem);
+  font-weight: 700;
   line-height: 1.08;
 }
 
 .appointments-hero em {
   color: var(--ink-700);
   font-style: normal;
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .appointments-toolbar {
@@ -2690,9 +2888,9 @@ a:hover {
   align-items: center;
   gap: 12px;
   min-height: 74px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--surface);
+  border: 1px solid transparent;
+  border-radius: 18px;
+  background: transparent;
   color: inherit;
   cursor: pointer;
   padding: 11px 12px;
@@ -2705,13 +2903,19 @@ a:hover {
 
 .appointment-row:hover,
 .appointment-row.active {
-  border-color: rgba(21, 117, 186, 0.42);
-  box-shadow: 0 12px 28px rgba(18, 103, 168, 0.11);
+  border-color: rgba(20, 184, 166, 0.2);
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 12px 28px rgba(13, 27, 42, 0.06);
   transform: translateY(-1px);
 }
 
 .appointment-row.active {
-  background: linear-gradient(135deg, rgba(229, 243, 251, 0.98), rgba(255, 255, 255, 0.98));
+  background:
+    linear-gradient(135deg, rgba(230, 247, 243, 0.92), rgba(255, 255, 255, 0.98)),
+    white;
+  box-shadow:
+    inset 4px 0 0 var(--blue-600),
+    0 14px 32px rgba(13, 27, 42, 0.07);
 }
 
 .appointment-date-badge {
@@ -2719,7 +2923,7 @@ a:hover {
   place-items: center;
   width: 54px;
   height: 54px;
-  border-radius: 8px;
+  border-radius: 16px;
   background: var(--ink-900);
   color: white;
 }
@@ -2733,7 +2937,7 @@ a:hover {
 .appointment-date-badge small {
   color: rgba(255, 255, 255, 0.76);
   font-size: 0.72rem;
-  font-weight: 900;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
@@ -2747,7 +2951,9 @@ a:hover {
 
 .appointment-row > span:not(.appointment-date-badge) strong {
   color: var(--ink-900);
+  font-family: Manrope, Inter, ui-sans-serif, system-ui, sans-serif;
   font-size: 0.98rem;
+  font-weight: 600;
 }
 
 .appointment-row > span:not(.appointment-date-badge) small,
@@ -2755,7 +2961,7 @@ a:hover {
   color: var(--ink-500);
   font-size: 0.82rem;
   font-style: normal;
-  font-weight: 850;
+  font-weight: 600;
 }
 
 .appointment-row em {
@@ -2766,18 +2972,22 @@ a:hover {
 
 .appointment-detail {
   display: grid;
-  gap: 16px;
+  gap: 20px;
   align-content: start;
-  border: 1px solid rgba(215, 230, 236, 0.92);
-  border-radius: 8px;
-  background: var(--surface);
-  padding: 18px;
+  min-height: 100%;
+  border: 1px solid rgba(223, 231, 237, 0.86);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(230, 247, 243, 0.86), transparent 34%),
+    rgba(255, 255, 255, 0.96);
+  box-shadow: var(--soft-shadow);
+  padding: 22px;
 }
 
 .appointment-detail-header {
   display: grid;
   gap: 8px;
-  border-bottom: 1px solid rgba(215, 230, 236, 0.9);
+  border-bottom: 1px solid rgba(223, 231, 237, 0.9);
   padding-bottom: 14px;
 }
 
@@ -2786,13 +2996,13 @@ a:hover {
   border-radius: 999px;
   color: white;
   font-size: 0.76rem;
-  font-weight: 950;
+  font-weight: 600;
   padding: 6px 9px;
   text-transform: uppercase;
 }
 
 .appointment-status.pendientes {
-  background: var(--blue-600);
+  background: var(--blue-700);
 }
 
 .appointment-status.historial {
@@ -2802,14 +3012,16 @@ a:hover {
 .appointment-detail-header h3 {
   margin: 0;
   color: var(--ink-900);
+  font-family: Manrope, Inter, ui-sans-serif, system-ui, sans-serif;
   font-size: clamp(1.35rem, 4vw, 2rem);
+  font-weight: 700;
   line-height: 1.08;
 }
 
 .appointment-detail-header p {
   margin: 0;
   color: var(--ink-500);
-  font-weight: 850;
+  font-weight: 600;
 }
 
 .appointment-detail-grid {
@@ -2820,30 +3032,28 @@ a:hover {
 }
 
 .appointment-detail-grid div {
-  border: 1px solid rgba(215, 230, 236, 0.9);
-  border-radius: 8px;
-  background: var(--surface-soft);
-  padding: 11px;
+  border-top: 1px solid rgba(223, 231, 237, 0.9);
+  padding: 13px 0;
 }
 
 .appointment-detail-grid dt {
   color: var(--ink-500);
   font-size: 0.76rem;
-  font-weight: 900;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
 .appointment-detail-grid dd {
   margin: 5px 0 0;
   color: var(--ink-900);
-  font-weight: 850;
+  font-weight: 500;
   overflow-wrap: anywhere;
 }
 
 .profile-note {
   margin: 18px 0 0;
   color: var(--ink-700);
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.5;
 }
 
@@ -2896,7 +3106,7 @@ button.patient-list-item:last-child {
 .patient-list-item small {
   margin-top: 3px;
   color: var(--ink-500);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .chart-loading-panel {
@@ -2910,7 +3120,7 @@ button.patient-list-item:last-child {
 .empty-state {
   margin: 0;
   color: var(--ink-700);
-  font-weight: 750;
+  font-weight: 600;
   line-height: 1.45;
 }
 
@@ -2935,14 +3145,14 @@ button.patient-list-item:last-child {
 .account-list dt {
   color: var(--ink-500);
   font-size: 0.82rem;
-  font-weight: 800;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
 .account-list dd {
   margin: 0;
   color: var(--ink-900);
-  font-weight: 800;
+  font-weight: 600;
   overflow-wrap: anywhere;
 }
 
@@ -2989,7 +3199,11 @@ button.patient-list-item:last-child {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .patients-directory-grid {
+  .patients-directory-hero {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .patients-directory-layout {
     grid-template-columns: minmax(280px, 0.9fr) minmax(300px, 1.1fr);
     align-items: start;
   }
@@ -3055,74 +3269,116 @@ button.patient-list-item:last-child {
   .brand-panel {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: center;
+    gap: 42px;
     min-height: calc(100vh - 56px);
-    border-radius: 8px;
-    padding: 42px;
+    border: 1px solid rgba(223, 231, 237, 0.78);
+    border-radius: 34px;
+    padding: 48px;
     background:
-      linear-gradient(150deg, rgba(21, 117, 186, 0.95), rgba(31, 155, 180, 0.84) 52%, rgba(106, 181, 69, 0.9)),
-      var(--blue-600);
-    color: white;
+      radial-gradient(circle at 18% 86%, rgba(230, 247, 243, 0.96) 0 15%, transparent 36%),
+      radial-gradient(circle at 82% 12%, rgba(242, 244, 247, 0.92) 0 20%, transparent 42%),
+      rgba(255, 255, 255, 0.7);
+    color: var(--ink-900);
     overflow: hidden;
+    box-shadow: var(--shadow);
   }
 
   .brand-lockup {
     display: grid;
-    gap: 22px;
+    gap: 18px;
     align-content: start;
-    max-width: 430px;
+    justify-items: center;
+    max-width: 520px;
+    margin: 0 auto;
+    text-align: center;
   }
 
   .brand-logo {
-    width: min(260px, 48%);
+    width: min(138px, 36%);
     height: auto;
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.92);
-    padding: 12px;
   }
 
   .brand-lockup .eyebrow,
   .brand-lockup p {
-    color: rgba(255, 255, 255, 0.84);
+    color: var(--ink-500);
   }
 
   .brand-lockup h1 {
-    font-size: clamp(3rem, 6vw, 5.25rem);
+    font-size: clamp(2.5rem, 5.2vw, 5rem);
+    font-weight: 800;
     line-height: 0.96;
   }
 
+  .brand-lockup h1 span:first-child {
+    color: var(--blue-700);
+  }
+
+  .brand-lockup h1 span:last-child {
+    color: var(--blue-600);
+  }
+
   .brand-lockup p {
-    font-size: 1.08rem;
+    font-size: 0.82rem;
+    font-family: Manrope, Inter, ui-sans-serif, system-ui, sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
   }
 
-  .vitals-strip {
+  .brand-lockup .eyebrow {
+    font-size: 0.72rem;
+  }
+
+  .brand-feature-list {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
+    gap: 22px;
+    width: min(100%, 460px);
+    margin: 0 auto;
   }
 
-  .vitals-strip div {
-    min-height: 112px;
-    border: 1px solid rgba(255, 255, 255, 0.28);
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.14);
-    padding: 16px;
+  .brand-feature-list > div {
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr);
+    gap: 18px;
+    align-items: center;
   }
 
-  .vitals-strip span,
-  .vitals-strip strong {
+  .brand-feature-icon {
+    display: inline-grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: rgba(13, 27, 42, 0.05);
+    color: var(--blue-700);
+    box-shadow: inset 0 0 0 1px rgba(13, 27, 42, 0.08);
+  }
+
+  .brand-feature-list > div:nth-child(odd) .brand-feature-icon {
+    background: rgba(13, 27, 42, 0.05);
+    color: var(--blue-700);
+  }
+
+  .brand-feature-icon svg {
+    width: 27px;
+    height: 27px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.9;
+  }
+
+  .brand-feature-list strong {
     display: block;
+    margin: 0;
   }
 
-  .vitals-strip span {
-    color: rgba(255, 255, 255, 0.78);
-    font-weight: 800;
-  }
-
-  .vitals-strip strong {
-    margin-top: 14px;
-    font-size: 2rem;
-    line-height: 1;
+  .brand-feature-list strong {
+    color: var(--ink-900);
+    font-size: 1.05rem;
+    font-weight: 500;
+    line-height: 1.35;
   }
 
   .mobile-logo {
@@ -3145,7 +3401,7 @@ button.patient-list-item:last-child {
   }
 
   .sidebar-brand img {
-    width: 68px;
+    width: 56px;
   }
 
   .sidebar-nav {

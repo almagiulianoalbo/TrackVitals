@@ -11,7 +11,10 @@ export default async function LoginPage() {
   }
 
   return (
-    <AuthShell title="Ingresar" subtitle="Accede a tu cuenta de TrackVitals.">
+    <AuthShell
+      title="Bienvenido de nuevo"
+      subtitle="Iniciá sesión para continuar."
+    >
       <AuthForm mode="login" />
     </AuthShell>
   );

@@ -51,7 +51,7 @@ export function AuthForm({ mode }: AuthFormProps) {
 
   return (
     <form className="auth-form" onSubmit={handleSubmit}>
-      <div className="role-switch" aria-label="Tipo de usuario">
+      <div className="role-switch" data-role={role} aria-label="Tipo de usuario">
         {(["paciente", "medico"] as const).map((item) => (
           <button
             type="button"

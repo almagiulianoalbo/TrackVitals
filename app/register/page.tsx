@@ -11,7 +11,7 @@ export default async function RegisterPage() {
   }
 
   return (
-    <AuthShell title="Crear cuenta" subtitle="Configurá tu acceso como paciente o médico.">
+    <AuthShell title="Crear cuenta" subtitle="Configurá tu acceso a TrackVitals.">
       <AuthForm mode="register" />
     </AuthShell>
   );

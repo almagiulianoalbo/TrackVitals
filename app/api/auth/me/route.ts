@@ -1,13 +1,12 @@
-import { NextResponse } from "next/server";
-import { getCurrentSession } from "@/lib/auth";
 import { jsonError } from "@/lib/auth-responses";
+import { getCurrentSession } from "@/lib/auth";
 
 export async function GET() {
   const user = await getCurrentSession();
 
   if (!user) {
-    return jsonError("No hay una sesión activa.", 401);
+    return jsonError("No autenticado.", 401);
   }
 
-  return NextResponse.json({ user });
+  return Response.json({ user });
 }

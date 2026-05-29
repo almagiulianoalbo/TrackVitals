@@ -78,9 +78,12 @@ function DashboardSidebar({ user, activeItem, photoUrl }: { user: SessionUser; a
   return (
     <aside className="dashboard-sidebar" aria-label="Navegación principal">
       <div className="sidebar-brand">
-        <Image src="/logo.png" alt="TrackVitals" width={84} height={66} priority />
+        <Image src="/logo-trackvitals-real.png" alt="TrackVitals" width={72} height={58} priority />
         <div>
-          <strong>TrackVitals</strong>
+          <strong className="sidebar-wordmark">
+            <span>Track</span>
+            <span>Vitals</span>
+          </strong>
           <span>{roleLabels[user.role]}</span>
         </div>
       </div>

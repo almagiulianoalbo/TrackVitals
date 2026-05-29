@@ -1,38 +1,31 @@
-import type { DashboardNavKey } from "@/components/DashboardChrome";
-import type React from "react";
-
-export type DetailItem = {
-  label: string;
-  value: React.ReactNode;
-};
+import { formatValue } from "@/lib/dashboard-format";
 
 export type ListItem = {
-  id: string | number;
+  id: number | string;
   title: string;
   meta?: string;
-  details: DetailItem[];
+  details: { label: string; value: string | number | null | undefined }[];
 };
 
-type DataPageProps = {
+export function DataList({
+  eyebrow,
+  title,
+  emptyMessage,
+  items
+}: {
   eyebrow: string;
   title: string;
   emptyMessage: string;
   items: ListItem[];
-  framed?: boolean;
-  showHeading?: boolean;
-};
-
-export function DataList({ eyebrow, title, emptyMessage, items, framed = true, showHeading = true }: DataPageProps) {
-  const content = (
-    <>
-      {showHeading ? (
-        <div className="section-heading">
-          <div>
-            {eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}
-            {title ? <h2>{title}</h2> : null}
-          </div>
+}) {
+  return (
+    <section className="dashboard-card">
+      <div className="section-heading">
+        <div>
+          <p className="eyebrow">{eyebrow}</p>
+          <h2>{title}</h2>
         </div>
-      ) : null}
+      </div>
 
       {items.length ? (
         <div className="data-list">
@@ -44,12 +37,11 @@ export function DataList({ eyebrow, title, emptyMessage, items, framed = true, s
                   {item.meta ? <p>{item.meta}</p> : null}
                 </div>
               </div>
-
               <dl className="data-detail-list">
                 {item.details.map((detail) => (
                   <div key={detail.label}>
                     <dt>{detail.label}</dt>
-                    <dd>{detail.value}</dd>
+                    <dd>{formatValue(detail.value)}</dd>
                   </div>
                 ))}
               </dl>
@@ -59,27 +51,20 @@ export function DataList({ eyebrow, title, emptyMessage, items, framed = true, s
       ) : (
         <p className="empty-state">{emptyMessage}</p>
       )}
-    </>
-  );
-
-  if (!framed) {
-    return <div className="embedded-data-list">{content}</div>;
-  }
-
-  return (
-    <section className="dashboard-card profile-card">
-      {content}
     </section>
   );
 }
 
-export function unauthorizedList(activeItem: DashboardNavKey) {
+export function unauthorizedList(section: string) {
   return (
-    <DataList
-      eyebrow="Sin acceso"
-      title="Vista no disponible"
-      emptyMessage={`Tu usuario no tiene acceso a esta sección (${activeItem}).`}
-      items={[]}
-    />
+    <section className="dashboard-card">
+      <div className="section-heading">
+        <div>
+          <p className="eyebrow">Acceso restringido</p>
+          <h2>No disponible</h2>
+        </div>
+      </div>
+      <p className="empty-state">Esta sección no está disponible para tu tipo de usuario: {section}.</p>
+    </section>
   );
 }
