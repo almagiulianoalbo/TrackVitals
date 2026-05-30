@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { roleLabels, type UserRole } from "@/lib/auth-types";
@@ -143,7 +142,7 @@ export function AuthForm({ mode }: AuthFormProps) {
 
       <p className="auth-link">
         {isRegister ? "Ya tienes cuenta?" : "No tienes cuenta?"}{" "}
-        <Link href={isRegister ? "/login" : "/register"}>{isRegister ? "Ingresar" : "Crear cuenta"}</Link>
+        <a href={isRegister ? "/login#acceso" : "/register#acceso"}>{isRegister ? "Ingresar" : "Crear cuenta"}</a>
       </p>
     </form>
   );
