@@ -1,11 +1,17 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { roleLabels, type UserRole } from "@/lib/auth-types";
 
 type AuthFormProps = {
   mode: "login" | "register";
+};
+
+type DoctorOption = {
+  id_medico: number;
+  nombre: string;
+  apellido: string;
 };
 
 export function AuthForm({ mode }: AuthFormProps) {
@@ -14,7 +20,37 @@ export function AuthForm({ mode }: AuthFormProps) {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [doctors, setDoctors] = useState<DoctorOption[]>([]);
+  const [isLoadingDoctors, setIsLoadingDoctors] = useState(false);
+  const [doctorsError, setDoctorsError] = useState("");
   const isRegister = mode === "register";
+
+  useEffect(() => {
+    if (!isRegister || role !== "paciente") return;
+
+    let ignore = false;
+    setIsLoadingDoctors(true);
+    setDoctorsError("");
+
+    fetch("/api/auth/medicos")
+      .then(async (response) => {
+        const result = (await response.json()) as { medicos?: DoctorOption[]; error?: string };
+        if (!response.ok) throw new Error(result.error ?? "No se pudo cargar la lista de médicos.");
+        if (!ignore) setDoctors(result.medicos ?? []);
+      })
+      .catch((requestError: unknown) => {
+        if (!ignore) {
+          setDoctorsError(requestError instanceof Error ? requestError.message : "No se pudo cargar la lista de médicos.");
+        }
+      })
+      .finally(() => {
+        if (!ignore) setIsLoadingDoctors(false);
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [isRegister, role]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -90,7 +126,7 @@ export function AuthForm({ mode }: AuthFormProps) {
                 <option value="">Sin especificar</option>
                 <option value="F">Femenino</option>
                 <option value="M">Masculino</option>
-                <option value="X">Otro</option>
+                <option value="X">Otro / prefiero no especificar</option>
               </select>
             </label>
           </div>
@@ -105,7 +141,18 @@ export function AuthForm({ mode }: AuthFormProps) {
                 <option value="otro">Otro</option>
               </select>
             </label>
-            <Field label="ID médico cabecera" name="id_medico_cabecera" inputMode="numeric" />
+            <label className="field">
+              <span>Médico de cabecera</span>
+              <select name="id_medico_cabecera" defaultValue="" disabled={isLoadingDoctors}>
+                <option value="">{isLoadingDoctors ? "Cargando médicos..." : "Sin médico asignado"}</option>
+                {doctors.map((doctor) => (
+                  <option value={doctor.id_medico} key={doctor.id_medico}>
+                    {doctor.nombre} {doctor.apellido} - ID: {doctor.id_medico}
+                  </option>
+                ))}
+              </select>
+              {doctorsError ? <small className="field-help field-help-error">{doctorsError}</small> : null}
+            </label>
           </div>
         </>
       ) : null}

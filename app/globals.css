@@ -75,7 +75,7 @@ a:hover {
   flex-direction: column;
   justify-content: center;
   overflow: hidden;
-  padding: 56px 24px 104px;
+  padding: 56px 24px 186px;
   background:
     linear-gradient(180deg, transparent 68%, var(--blue-700) 100%),
     radial-gradient(circle at 16% 18%, rgba(20, 184, 166, 0.2), transparent 30%),
@@ -254,16 +254,17 @@ a:hover {
 }
 
 .brand-feature-list strong {
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.96);
   font-size: 0.94rem;
-  font-weight: 500;
+  font-weight: 650;
   line-height: 1.35;
 }
 
 .scroll-prompt {
   position: absolute;
-  bottom: 24px;
+  bottom: 44px;
   left: 50%;
+  z-index: 3;
   display: grid;
   gap: 7px;
   justify-items: center;
@@ -307,48 +308,42 @@ a:hover {
   position: relative;
   z-index: 2;
   isolation: isolate;
-  height: clamp(500px, 54vw, 720px);
-  margin: clamp(-300px, -27vw, -220px) 0 -1px;
+  height: clamp(250px, 28vw, 360px);
+  margin: -1px 0 -3px;
   overflow: hidden;
   pointer-events: none;
   background:
-    linear-gradient(180deg, var(--blue-700) 0%, var(--blue-700) 48%, rgba(13, 27, 42, 0.92) 56%, transparent 70%),
-    radial-gradient(circle at 14% 82%, rgba(20, 184, 166, 0.54), transparent 38%),
-    radial-gradient(circle at 84% 92%, rgba(230, 247, 243, 0.54), transparent 36%),
-    linear-gradient(180deg, var(--blue-700) 0%, var(--blue-700) 46%, #123747 58%, #17625f 72%, #83d1ca 88%, #f7fcfc 100%);
+    linear-gradient(180deg, var(--blue-700) 0%, var(--blue-700) 30%, rgba(13, 27, 42, 0.9) 42%, transparent 58%),
+    radial-gradient(circle at 14% 92%, rgba(20, 184, 166, 0.48), transparent 42%),
+    radial-gradient(circle at 86% 94%, rgba(230, 247, 243, 0.42), transparent 40%),
+    linear-gradient(180deg, var(--blue-700) 0%, var(--blue-700) 36%, #103244 54%, #247d78 78%, #c8ebe8 100%);
   background-size: 150% 150%;
-  mask-image: linear-gradient(to bottom, transparent 0, rgba(0, 0, 0, 0.12) 8%, rgba(0, 0, 0, 0.54) 18%, #000 30%, #000 100%);
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0, rgba(0, 0, 0, 0.12) 8%, rgba(0, 0, 0, 0.54) 18%, #000 30%, #000 100%);
   animation: transition-aurora 10s ease-in-out infinite alternate;
 }
 
-.landing-transition::before,
-.landing-transition::after {
+.landing-transition::before {
   position: absolute;
-  z-index: -1;
-  width: 125%;
-  border-radius: 50%;
+  inset: 38% -8% -12%;
+  z-index: 1;
+  background:
+    radial-gradient(circle at 18% 58%, rgba(20, 184, 166, 0.4), transparent 32%),
+    radial-gradient(circle at 82% 62%, rgba(230, 247, 243, 0.34), transparent 34%);
+  filter: blur(26px);
   content: "";
 }
 
-.landing-transition::before {
-  top: -64%;
-  left: -16%;
-  height: 128%;
-  border: 1px solid rgba(230, 247, 243, 0.19);
-  box-shadow:
-    0 0 0 42px rgba(20, 184, 166, 0.045),
-    0 0 0 96px rgba(230, 247, 243, 0.035);
-  animation: transition-wave 13s ease-in-out infinite alternate;
+.transition-wave {
+  position: absolute;
+  left: -2%;
+  display: block;
+  width: 104%;
 }
 
-.landing-transition::after {
-  right: -12%;
-  bottom: -76%;
-  height: 118%;
-  background: rgba(247, 252, 252, 0.98);
-  filter: blur(1px);
-  transform: rotate(-3deg);
+.transition-wave-bottom {
+  bottom: -3px;
+  z-index: 4;
+  height: clamp(92px, 10vw, 142px);
+  fill: #f7fcfc;
 }
 
 .transition-glow,
@@ -359,12 +354,13 @@ a:hover {
 }
 
 .transition-glow {
+  z-index: 2;
   filter: blur(34px);
   mix-blend-mode: screen;
 }
 
 .transition-glow-one {
-  top: 56%;
+  top: 70%;
   left: 10%;
   width: 34vw;
   height: 24vw;
@@ -374,7 +370,7 @@ a:hover {
 
 .transition-glow-two {
   right: 4%;
-  bottom: -4%;
+  bottom: -18%;
   width: 28vw;
   height: 22vw;
   background: rgba(230, 247, 243, 0.72);
@@ -382,11 +378,12 @@ a:hover {
 }
 
 .transition-ribbon {
+  z-index: 3;
   border: 1px solid rgba(230, 247, 243, 0.24);
 }
 
 .transition-ribbon-one {
-  top: 24%;
+  top: 42%;
   left: -11%;
   width: 76%;
   height: 82%;
@@ -395,7 +392,7 @@ a:hover {
 }
 
 .transition-ribbon-two {
-  top: -32%;
+  top: 8%;
   right: -18%;
   width: 68%;
   height: 104%;
@@ -407,23 +404,12 @@ a:hover {
   position: relative;
   isolation: isolate;
   min-height: 100svh;
+  margin-top: -2px;
   padding: 78px 18px 72px;
   background:
     radial-gradient(circle at 84% 12%, rgba(20, 184, 166, 0.11), transparent 22%),
     linear-gradient(180deg, #f7fcfc, #ffffff 54%, #f8fbfc);
   overflow: hidden;
-}
-
-.preview-section::before {
-  position: absolute;
-  top: -66px;
-  left: -5vw;
-  z-index: -1;
-  width: 110vw;
-  height: 132px;
-  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
-  background: #f7fcfc;
-  content: "";
 }
 
 .preview-section::after {
@@ -718,6 +704,26 @@ a:hover {
   align-items: start;
 }
 
+.landing-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 22px;
+  justify-content: center;
+  border-top: 1px solid rgba(215, 230, 236, 0.72);
+  background: #f8fbfc;
+  color: var(--ink-500);
+  padding: 22px 18px 24px;
+  font-family: Manrope, Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.74rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-align: center;
+}
+
+.landing-footer strong {
+  color: var(--teal-600);
+}
+
 .auth-overlay {
   position: fixed;
   inset: 0;
@@ -903,7 +909,9 @@ body:has(.auth-overlay:target) {
   }
 
   .preview-feature-card {
-    animation-range: entry 0% cover 16%;
+    animation: none;
+    opacity: 1;
+    transform: none;
   }
 }
 
@@ -1110,6 +1118,17 @@ body:has(.auth-overlay:target) {
 
 .field select {
   cursor: pointer;
+}
+
+.field-help {
+  color: var(--ink-500);
+  font-size: 0.76rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.field-help-error {
+  color: var(--red-500);
 }
 
 .field input:focus,
@@ -1900,14 +1919,14 @@ body:has(.auth-overlay:target) {
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto auto;
   gap: 7px;
-  align-items: end;
+  align-items: flex-end;
   min-width: 0;
   text-align: center;
 }
 
 .moment-bars {
   display: flex;
-  align-items: end;
+  align-items: flex-end;
   justify-content: center;
   gap: 5px;
   height: 100%;
@@ -2131,7 +2150,7 @@ body:has(.auth-overlay:target) {
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto auto;
   gap: 6px;
-  align-items: end;
+  align-items: flex-end;
   min-width: 0;
   height: 100%;
   text-align: center;
@@ -2282,7 +2301,7 @@ body:has(.auth-overlay:target) {
 .medication-hero {
   display: grid;
   gap: 16px;
-  align-items: end;
+  align-items: flex-end;
   border: 1px solid rgba(215, 230, 236, 0.86);
   border-radius: 24px;
   background:
@@ -2567,7 +2586,7 @@ body:has(.auth-overlay:target) {
 .food-plan-empty {
   display: grid;
   gap: 16px;
-  align-items: end;
+  align-items: flex-end;
   border: 1px solid rgba(215, 230, 236, 0.86);
   border-radius: 24px;
   background:
@@ -2852,7 +2871,7 @@ body:has(.auth-overlay:target) {
 .messages-hero {
   display: grid;
   gap: 16px;
-  align-items: end;
+  align-items: flex-end;
   border: 1px solid rgba(215, 230, 236, 0.86);
   border-radius: 24px;
   background:
@@ -3014,7 +3033,11 @@ body:has(.auth-overlay:target) {
 }
 
 .conversation-panel {
-  min-height: min(76vh, 760px);
+  height: clamp(560px, 76vh, 760px);
+  min-height: 0;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  align-content: stretch;
+  overflow: hidden;
 }
 
 .conversation-header {
@@ -3043,11 +3066,13 @@ body:has(.auth-overlay:target) {
 .message-stream {
   display: grid;
   gap: 12px;
-  align-content: end;
-  min-height: 280px;
-  max-height: min(48vh, 520px);
-  overflow: auto;
+  align-content: start;
+  min-height: 0;
+  max-height: none;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 4px;
+  scrollbar-gutter: stable;
 }
 
 .message-block {
@@ -3419,7 +3444,7 @@ body:has(.auth-overlay:target) {
 .patients-directory-hero {
   display: grid;
   gap: 14px;
-  align-items: end;
+  align-items: flex-end;
   border-bottom: 1px solid rgba(223, 231, 237, 0.92);
   padding-bottom: 16px;
 }
@@ -5078,6 +5103,10 @@ button.patient-list-item:last-child {
     padding: 48px 28px;
   }
 
+  .scroll-prompt {
+    bottom: 44px;
+  }
+
   .auth-panel {
     padding: 34px;
   }
@@ -5148,7 +5177,7 @@ button.patient-list-item:last-child {
 
   .prescription-toolbar {
     grid-template-columns: minmax(280px, 1fr) auto;
-    align-items: end;
+    align-items: flex-end;
   }
 
   .prescriptions-layout {
@@ -5158,12 +5187,12 @@ button.patient-list-item:last-child {
 
   .signs-toolbar {
     grid-template-columns: minmax(260px, 1fr) minmax(220px, 0.65fr) auto;
-    align-items: end;
+    align-items: flex-end;
   }
 
   .patient-calendar-toolbar {
     grid-template-columns: minmax(280px, 1fr) auto;
-    align-items: end;
+    align-items: flex-end;
   }
 
   .patient-calendar-layout {
@@ -5178,7 +5207,7 @@ button.patient-list-item:last-child {
 
   .alerts-toolbar {
     grid-template-columns: minmax(260px, 1fr) minmax(220px, 0.65fr) auto;
-    align-items: end;
+    align-items: flex-end;
   }
 
   .alerts-layout {
@@ -5188,7 +5217,7 @@ button.patient-list-item:last-child {
 
   .appointments-toolbar {
     grid-template-columns: minmax(280px, 1fr) auto;
-    align-items: end;
+    align-items: flex-end;
   }
 
   .appointments-layout {
@@ -5230,12 +5259,16 @@ button.patient-list-item:last-child {
 
 @media (min-width: 980px) {
   .brand-panel {
-    padding: 76px 56px 112px;
+    padding: 76px 56px 194px;
     background:
       linear-gradient(180deg, transparent 68%, var(--blue-700) 100%),
       radial-gradient(circle at 18% 22%, rgba(20, 184, 166, 0.2), transparent 28%),
       radial-gradient(circle at 78% 74%, rgba(20, 184, 166, 0.11), transparent 24%),
       var(--blue-700);
+  }
+
+  .scroll-prompt {
+    bottom: 44px;
   }
 
   .brand-hero-content {
@@ -5260,9 +5293,10 @@ button.patient-list-item:last-child {
     grid-template-columns: 58px minmax(0, 1fr);
     gap: 16px;
     padding: 16px;
-    border: 1px solid rgba(230, 247, 243, 0.1);
+    border: 1px solid rgba(230, 247, 243, 0.18);
     border-radius: 20px;
-    background: rgba(255, 255, 255, 0.035);
+    background: rgba(255, 255, 255, 0.07);
+    box-shadow: 0 16px 36px rgba(2, 12, 24, 0.14);
   }
 
   .brand-feature-icon {

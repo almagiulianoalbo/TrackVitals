@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 
 type UserRole = "paciente" | "medico";
@@ -125,7 +125,14 @@ function ConversationPanel({ conversation, role, userId }: { conversation: Conve
   const [category, setCategory] = useState("Consulta");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const streamRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    const stream = streamRef.current;
+    if (!stream) return;
+    stream.scrollTop = stream.scrollHeight;
+  }, [conversation?.id, conversation?.messages.length]);
 
   if (!conversation) {
     return (
@@ -175,7 +182,7 @@ function ConversationPanel({ conversation, role, userId }: { conversation: Conve
         </div>
       </header>
 
-      <div className="message-stream">
+      <div className="message-stream" ref={streamRef}>
         {conversation.messages.length ? (
           conversation.messages.map((message, index) => {
             const own = isOwnMessage(message, role);

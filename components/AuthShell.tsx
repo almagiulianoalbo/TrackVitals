@@ -57,6 +57,9 @@ export function AuthShell({ title, subtitle, children }: AuthShellProps) {
         <span className="transition-glow transition-glow-two" />
         <span className="transition-ribbon transition-ribbon-one" />
         <span className="transition-ribbon transition-ribbon-two" />
+        <svg className="transition-wave transition-wave-bottom" viewBox="0 0 1440 190" preserveAspectRatio="none">
+          <path d="M0 112c250-90 480 42 738-16 273-62 476-89 702-29v123H0Z" />
+        </svg>
       </div>
 
       <section className="preview-section" id="preview" aria-labelledby="preview-title">
@@ -180,6 +183,12 @@ export function AuthShell({ title, subtitle, children }: AuthShellProps) {
 
         </div>
       </section>
+
+      <footer className="landing-footer">
+        <span>Powered by <strong>CAF</strong></span>
+        <span>TrackVitals 2026</span>
+        <span>Ciencia de datos para la Medicina</span>
+      </footer>
 
       <section className="auth-overlay" id="acceso" aria-label="Acceso a TrackVitals">
         <a className="auth-overlay-backdrop" href="#" aria-label="Cerrar acceso" />
