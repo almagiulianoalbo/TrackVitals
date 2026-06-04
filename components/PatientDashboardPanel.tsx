@@ -13,14 +13,13 @@ export function PatientDashboardPanel({
   records: PatientRecordChartPoint[];
 }) {
   const latest = records.at(-1);
-  const average = getAverage(records);
-  const timeInsights = getTimeInsights(records);
+  const weeklySummary = buildWeeklySummary(records);
 
   return (
     <div className="dashboard-content">
       <section className="metric-grid" aria-label="Acciones rápidas">
         <LinkMetric href="/dashboard/mis-registros" label="Mis registros" value={latest?.glucemia_mgdl ? `${latest.glucemia_mgdl}` : "--"} status="Última glucemia" />
-        <LinkMetric href="/dashboard/turnos" label="Próximo control" value={nextAppointmentValue} status={nextAppointmentStatus} />
+        <LinkMetric href="/dashboard/turnos" label="Próximo control" value={nextAppointmentValue} status={nextAppointmentStatus} valueStyle="date" />
         <LinkMetric href="/dashboard/alertas" label="Alertas" value={String(alertCount)} status={alertCount ? "Pendientes" : "Sin pendientes"} />
         <LinkMetric href="/dashboard/medicacion" label="Medicación" value="Ver" status="Indicaciones activas" />
       </section>
@@ -29,26 +28,18 @@ export function PatientDashboardPanel({
         <article className="dashboard-card patient-focus">
           <div className="section-heading">
             <div>
-              <p className="eyebrow">Registro diario</p>
-              <h2>Resumen de glucemia</h2>
+              <p className="eyebrow">Últimos 7 días</p>
+              <h2>Resumen de registros semanales</h2>
             </div>
+            <span className="summary-period">{weeklySummary.periodLabel}</span>
           </div>
-          <div className="clinical-metrics">
-            <div className="metric-card compact">
-              <span>Promedio</span>
-              <strong>{average ?? "--"}{average ? <small> mg/dL</small> : null}</strong>
-              <em>Últimos registros</em>
+
+          <div className="weekly-summary-layout">
+            <div className="weekly-chart-stack">
+              <WeeklyGlucoseChart summary={weeklySummary} />
+              <RangeDistributionChart records={weeklySummary.records} compact />
             </div>
-            <div className="metric-card compact">
-              <span>Registros</span>
-              <strong>{records.length}</strong>
-              <em>Total cargado</em>
-            </div>
-          </div>
-          <MiniLineChart records={records} />
-          <div className="chart-grid patient-insight-grid">
-            <RangeDistributionChart records={records} />
-            <MomentResponseChart insights={timeInsights} />
+            <WeeklyMetricPanel summary={weeklySummary} />
           </div>
         </article>
       </section>
@@ -56,58 +47,119 @@ export function PatientDashboardPanel({
   );
 }
 
-function LinkMetric({ href, label, value, status }: { href: string; label: string; value: string; status: string }) {
+function LinkMetric({ href, label, value, status, valueStyle }: { href: string; label: string; value: string; status: string; valueStyle?: "date" }) {
   return (
     <Link className="metric-card action-metric-card link-metric-card" href={href}>
       <span>{label}</span>
-      <strong>{value}</strong>
+      <strong className={valueStyle === "date" ? "metric-date-value" : undefined}>{value}</strong>
       <em>{status}</em>
     </Link>
   );
 }
 
-function MiniLineChart({ records }: { records: PatientRecordChartPoint[] }) {
-  const points = records.filter((record) => typeof record.glucemia_mgdl === "number").slice(-14);
-  if (!points.length) return <p className="empty-state">Todavía no hay datos para graficar.</p>;
-
-  const values = points.map((point) => point.glucemia_mgdl ?? 0);
-  const min = Math.min(60, ...values);
-  const max = Math.max(220, ...values);
-  const coords = points.map((point, index) => {
-    const x = points.length === 1 ? 160 : 20 + (index * 280) / (points.length - 1);
-    const y = 150 - (((point.glucemia_mgdl ?? min) - min) * 120) / (max - min || 1);
-    return `${x},${y}`;
-  });
+function WeeklyGlucoseChart({ summary }: { summary: WeeklySummary }) {
+  const { daily, points, yMin, yMax, records } = summary;
+  const width = 760;
+  const height = 238;
+  const xForDay = (index: number) => (index / 6) * width;
+  const yForValue = (value: number) => 18 + ((yMax - value) * (height - 34)) / (yMax - yMin || 1);
+  const avgPoints = daily
+    .map((day, index) => (day.count ? { x: xForDay(index), y: yForValue(day.avg), label: day.label, value: day.avg } : null))
+    .filter((point): point is { x: number; y: number; label: string; value: number } => Boolean(point));
+  const avgPath = buildSmoothPath(avgPoints);
+  const areaPath = buildAreaPath(avgPoints, height);
+  const highLineY = yForValue(180);
+  const lowLineY = yForValue(70);
 
   return (
-    <div className="chart-card">
+    <div className="weekly-chart-card">
       <div className="chart-heading-row">
-        <h3>Tendencia de glucemia</h3>
-        <span>{points.length} puntos</span>
+        <h3>Análisis estadístico semanal</h3>
+        <span>{records.length ? "Últimos 7 días" : "Sin registros"}</span>
       </div>
-      <svg viewBox="0 0 320 170" role="img" aria-label="Tendencia de glucemia">
-        <path className="chart-grid-line" d="M20 40H300M20 95H300M20 150H300" />
-        <path className="glucose-reference low-line" d="M20 112H300" />
-        <path className="glucose-reference high-line" d="M20 63H300" />
-        <polyline className="chart-line smooth-line" points={coords.join(" ")} />
-        <g className="chart-dots">
-          {coords.map((coord, index) => {
-            const [cx, cy] = coord.split(",");
-            const value = points[index].glucemia_mgdl ?? 0;
-            const tone = getGlucoseTone(value);
-            return (
-              <circle className={`chart-dot-${tone}`} cx={cx} cy={cy} r="4" key={points[index].id_registro}>
-                <title>{`${formatShortDate(points[index].fecha_hora)} · ${value} mg/dL`}</title>
-              </circle>
-            );
-          })}
-        </g>
-      </svg>
+
+      {points.length ? (
+        <>
+          <div className="weekly-chart-metrics">
+            <div>
+              <span>Promedio</span>
+              <strong>{formatMetricValue(summary.avg)} <small>mg/dL</small></strong>
+            </div>
+            <div>
+              <span>En rango</span>
+              <strong>{summary.timeInRange ?? "--"}{summary.timeInRange !== null ? <small>%</small> : null}</strong>
+            </div>
+            <div>
+              <span>Registros</span>
+              <strong>{records.length}</strong>
+            </div>
+          </div>
+
+          <div className="weekly-chart-wrap">
+            <span className="weekly-range-label weekly-range-high">180</span>
+            <span className="weekly-range-label weekly-range-low">70</span>
+            <svg className="weekly-glucose-chart" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Resumen estadístico de glucemia de los últimos 7 días">
+              <defs>
+                <linearGradient id="weeklyGlucoseArea" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stopColor="#14b8a6" stopOpacity="0.26" />
+                  <stop offset="100%" stopColor="#14b8a6" stopOpacity="0" />
+                </linearGradient>
+              </defs>
+              <path className="weekly-chart-range" d={`M0 ${highLineY}H${width}M0 ${lowLineY}H${width}`} />
+              {areaPath ? <path className="weekly-glucose-area" d={areaPath} /> : null}
+              {avgPath ? <path className="weekly-glucose-line" d={avgPath} /> : null}
+              <g className="weekly-chart-points">
+                {avgPoints.map((point) => (
+                  <circle cx={point.x} cy={point.y} r="6" key={point.label}>
+                    <title>{`${point.label}: promedio ${point.value} mg/dL`}</title>
+                  </circle>
+                ))}
+              </g>
+            </svg>
+          </div>
+
+          <div className="weekly-chart-days" aria-hidden="true">
+            {daily.map((day) => <span key={day.key}>{day.shortLabel}</span>)}
+          </div>
+        </>
+      ) : (
+        <p className="chart-empty">Cuando cargues registros de glucemia, acá vas a ver la evolución estadística de los últimos 7 días.</p>
+      )}
     </div>
   );
 }
 
-function RangeDistributionChart({ records }: { records: PatientRecordChartPoint[] }) {
+function WeeklyMetricPanel({ summary }: { summary: WeeklySummary }) {
+  return (
+    <aside className="weekly-metric-panel" aria-label="Valores informativos semanales">
+      <div className="weekly-stat-list">
+        <WeeklyMetric label="Promedio glucosa" value={formatMetricValue(summary.avg)} unit="mg/dL" detail={`${summary.records.length} registros`} progress={summary.avg ? normalizeMetric(summary.avg, summary.yMin, summary.yMax) : 0} />
+        <WeeklyMetric label="Glucosa máxima" value={formatMetricValue(summary.max)} unit="mg/dL" detail={summary.maxRecord ? formatShortDate(summary.maxRecord.fecha_hora) : "Sin datos"} tone="high" progress={summary.max ? normalizeMetric(summary.max, summary.yMin, summary.yMax) : 0} />
+        <WeeklyMetric label="Glucosa mínima" value={formatMetricValue(summary.min)} unit="mg/dL" detail={summary.minRecord ? formatShortDate(summary.minRecord.fecha_hora) : "Sin datos"} tone="low" progress={summary.min ? normalizeMetric(summary.min, summary.yMin, summary.yMax) : 0} />
+        <WeeklyMetric label="Hipoglucemias" value={String(summary.hypoglycemiaCount)} detail="<70 mg/dL" tone={summary.hypoglycemiaCount ? "low" : "normal"} progress={Math.min(100, summary.hypoglycemiaCount * 18)} />
+        <WeeklyMetric label="Hiperglucemias" value={String(summary.hyperglycemiaCount)} detail=">180 mg/dL" tone={summary.hyperglycemiaCount ? "high" : "normal"} progress={Math.min(100, summary.hyperglycemiaCount * 18)} />
+      </div>
+    </aside>
+  );
+}
+
+function WeeklyMetric({ label, value, unit, detail, progress, tone = "neutral" }: { label: string; value: string; unit?: string; detail: string; progress: number; tone?: "neutral" | "normal" | "low" | "high" }) {
+  return (
+    <article className={`weekly-metric ${tone}`} style={{ "--metric-progress": `${progress}%` } as Record<string, string>}>
+      <div>
+        <span>{label}</span>
+        <em>{detail}</em>
+      </div>
+      <strong>
+        {value}
+        {unit ? <small>{unit}</small> : null}
+      </strong>
+      <i aria-hidden="true" />
+    </article>
+  );
+}
+
+function RangeDistributionChart({ records, compact = false }: { records: PatientRecordChartPoint[]; compact?: boolean }) {
   const values = records.map((record) => Number(record.glucemia_mgdl)).filter(Number.isFinite);
   const ranges = [
     { key: "low", label: "Bajas", detail: "<70", count: values.filter((value) => value < 70).length },
@@ -119,7 +171,7 @@ function RangeDistributionChart({ records }: { records: PatientRecordChartPoint[
 
   if (!total) {
     return (
-      <div className="chart-card insight-card">
+      <div className={`chart-card insight-card ${compact ? "weekly-range-card" : ""}`}>
         <div className="chart-heading-row">
           <h3>Tiempo en rango</h3>
           <span>Distribución</span>
@@ -130,7 +182,7 @@ function RangeDistributionChart({ records }: { records: PatientRecordChartPoint[
   }
 
   return (
-    <div className="chart-card insight-card">
+    <div className={`chart-card insight-card ${compact ? "weekly-range-card" : ""}`}>
       <div className="chart-heading-row">
         <h3>Tiempo en rango</h3>
         <span>{bestRange ? `${bestRange.label} dominante` : "Distribución"}</span>
@@ -155,121 +207,164 @@ function RangeDistributionChart({ records }: { records: PatientRecordChartPoint[
           })}
         </div>
       </div>
-      <div className="chart-legend">
-        <span><i className="legend-normal" />objetivo</span>
-        <span><i className="legend-high" />alta</span>
-        <span><i className="legend-low" />baja</span>
-      </div>
-    </div>
-  );
-}
-
-function MomentResponseChart({ insights }: { insights: MomentInsight[] }) {
-  const active = insights.filter((item) => item.count > 0);
-  const maxGlucose = Math.max(180, ...active.map((item) => item.avgGlucose));
-
-  return (
-    <div className="chart-card insight-card">
-      <div className="chart-heading-row">
-        <h3>Respuesta por momento</h3>
-        <span>{active.length ? `${active.length} momentos` : "Sin datos"}</span>
-      </div>
-      {active.length ? (
-        <div className="moment-chart" aria-label="Promedio de glucemia y dosis por momento">
-          {active.map((item) => {
-            const height = Math.max(16, (item.avgGlucose / maxGlucose) * 100);
-            const doseHeight = item.avgDose ? Math.max(8, Math.min(80, item.avgDose * 3)) : 0;
-            const tone = getGlucoseTone(item.avgGlucose);
-
-            return (
-              <div className="moment-bar" key={item.label}>
-                <div className="moment-bars">
-                  <span className={`moment-glucose chart-dot-${tone}`} style={{ height: `${height}%` }} title={`${item.label}: ${item.avgGlucose} mg/dL`} />
-                  <span className="moment-dose" style={{ height: `${doseHeight}%` }} title={item.avgDose ? `${item.avgDose} u promedio` : "Sin dosis"} />
-                </div>
-                <strong>{item.shortLabel}</strong>
-                <small>{item.avgGlucose}</small>
-              </div>
-            );
-          })}
+      {compact ? null : (
+        <div className="chart-legend">
+          <span><i className="legend-normal" />objetivo</span>
+          <span><i className="legend-high" />alta</span>
+          <span><i className="legend-low" />baja</span>
         </div>
-      ) : (
-        <p className="chart-empty">Cuando haya momentos cargados, se verá dónde se concentra mejor o peor la glucemia.</p>
       )}
-      <div className="chart-legend">
-        <span><i className="legend-glucose" />glucemia promedio</span>
-        <span><i className="legend-dose" />dosis promedio</span>
-      </div>
     </div>
   );
 }
 
-function getAverage(records: PatientRecordChartPoint[]) {
-  const values = records.map((record) => record.glucemia_mgdl).filter((value): value is number => typeof value === "number");
-  if (!values.length) return null;
-  return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
-}
-
-type MomentInsight = {
+type WeeklyDay = {
+  key: string;
   label: string;
   shortLabel: string;
   count: number;
-  avgGlucose: number;
-  avgDose: number;
+  avg: number;
+  min: number;
+  max: number;
 };
 
-function getTimeInsights(records: PatientRecordChartPoint[]): MomentInsight[] {
-  const groups = new Map<string, { label: string; glucose: number[]; doses: number[] }>();
+type WeeklyChartPoint = {
+  id: number;
+  date: string;
+  dayIndex: number;
+  value: number;
+};
 
-  records.forEach((record) => {
-    const label = record.momento?.trim() || "Sin momento";
-    const glucose = Number(record.glucemia_mgdl);
-    const dose = Number(record.dosis_unidades);
+type WeeklySummary = {
+  records: PatientRecordChartPoint[];
+  daily: WeeklyDay[];
+  points: WeeklyChartPoint[];
+  avg: number | null;
+  min: number | null;
+  max: number | null;
+  minRecord: PatientRecordChartPoint | null;
+  maxRecord: PatientRecordChartPoint | null;
+  timeInRange: number | null;
+  hypoglycemiaCount: number;
+  hyperglycemiaCount: number;
+  yMin: number;
+  yMax: number;
+  periodLabel: string;
+};
 
-    if (!groups.has(label)) {
-      groups.set(label, { label, glucose: [], doses: [] });
-    }
+function buildWeeklySummary(records: PatientRecordChartPoint[]): WeeklySummary {
+  const validRecords = records.filter((record) => Number.isFinite(Number(record.glucemia_mgdl)));
+  const anchor = validRecords.at(-1)?.fecha_hora ? startOfDay(new Date(validRecords.at(-1)?.fecha_hora ?? "")) : startOfDay(new Date());
+  const start = new Date(anchor);
+  start.setDate(anchor.getDate() - 6);
+  const endExclusive = new Date(anchor);
+  endExclusive.setDate(anchor.getDate() + 1);
 
-    const group = groups.get(label);
-    if (!group) return;
-    if (Number.isFinite(glucose)) group.glucose.push(glucose);
-    if (Number.isFinite(dose)) group.doses.push(dose);
+  const weeklyRecords = records
+    .filter((record) => {
+      const date = new Date(record.fecha_hora);
+      return !Number.isNaN(date.getTime()) && date >= start && date < endExclusive;
+    })
+    .toSorted((left, right) => new Date(left.fecha_hora).getTime() - new Date(right.fecha_hora).getTime());
+  const weeklyValues = weeklyRecords.map((record) => Number(record.glucemia_mgdl)).filter(Number.isFinite);
+  const minRecord = findExtremeRecord(weeklyRecords, "min");
+  const maxRecord = findExtremeRecord(weeklyRecords, "max");
+  const min = weeklyValues.length ? Math.min(...weeklyValues) : null;
+  const max = weeklyValues.length ? Math.max(...weeklyValues) : null;
+  const avg = weeklyValues.length ? Math.round(weeklyValues.reduce((sum, value) => sum + value, 0) / weeklyValues.length) : null;
+  const inRangeCount = weeklyValues.filter((value) => value >= 70 && value <= 180).length;
+  const hypoglycemiaCount = weeklyValues.filter((value) => value < 70).length;
+  const hyperglycemiaCount = weeklyValues.filter((value) => value > 180).length;
+  const yMin = Math.max(40, Math.floor((Math.min(60, min ?? 70) - 15) / 10) * 10);
+  const yMax = Math.min(320, Math.ceil((Math.max(220, max ?? 180) + 15) / 10) * 10);
+  const daily = Array.from({ length: 7 }, (_, index) => {
+    const day = new Date(start);
+    day.setDate(start.getDate() + index);
+    const dayRecords = weeklyRecords.filter((record) => isSameDay(new Date(record.fecha_hora), day));
+    const values = dayRecords.map((record) => Number(record.glucemia_mgdl)).filter(Number.isFinite);
+    return {
+      key: day.toISOString().slice(0, 10),
+      label: day.toLocaleDateString("es-AR", { weekday: "long", day: "2-digit", month: "2-digit" }),
+      shortLabel: day.toLocaleDateString("es-AR", { weekday: "short" }).replace(".", ""),
+      count: values.length,
+      avg: values.length ? Math.round(values.reduce((sum, value) => sum + value, 0) / values.length) : 0,
+      min: values.length ? Math.min(...values) : 0,
+      max: values.length ? Math.max(...values) : 0
+    };
   });
+  const points = weeklyRecords
+    .map((record) => {
+      const date = new Date(record.fecha_hora);
+      const dayIndex = Math.max(0, Math.min(6, Math.floor((startOfDay(date).getTime() - start.getTime()) / 86_400_000)));
+      return { id: record.id_registro, date: record.fecha_hora, dayIndex, value: Number(record.glucemia_mgdl) };
+    })
+    .filter((point) => Number.isFinite(point.value));
 
-  return [...groups.values()]
-    .map((group) => ({
-      label: group.label,
-      shortLabel: shortenMoment(group.label),
-      count: group.glucose.length,
-      avgGlucose: averageNumbers(group.glucose),
-      avgDose: averageNumbers(group.doses, 1)
-    }))
-    .filter((item) => item.count > 0)
-    .sort((left, right) => right.count - left.count)
-    .slice(0, 5);
+  return {
+    records: weeklyRecords,
+    daily,
+    points,
+    avg,
+    min,
+    max,
+    minRecord,
+    maxRecord,
+    timeInRange: weeklyValues.length ? Math.round((inRangeCount / weeklyValues.length) * 100) : null,
+    hypoglycemiaCount,
+    hyperglycemiaCount,
+    yMin,
+    yMax,
+    periodLabel: `${formatShortDate(start.toISOString())} - ${formatShortDate(anchor.toISOString())}`
+  };
 }
 
-function averageNumbers(values: number[], digits = 0) {
-  if (!values.length) return 0;
-  const average = values.reduce((sum, value) => sum + value, 0) / values.length;
-  return Number(average.toFixed(digits));
+function buildSmoothPath(points: { x: number; y: number }[]) {
+  if (!points.length) return "";
+  if (points.length === 1) return `M${points[0].x} ${points[0].y}`;
+
+  return points.reduce((path, point, index) => {
+    if (index === 0) return `M${point.x} ${point.y}`;
+
+    const previous = points[index - 1];
+    const controlX = previous.x + (point.x - previous.x) / 2;
+    return `${path} C${controlX} ${previous.y}, ${controlX} ${point.y}, ${point.x} ${point.y}`;
+  }, "");
 }
 
-function getGlucoseTone(value: number) {
-  if (value < 70) return "low";
-  if (value > 180) return "high";
-  return "normal";
+function buildAreaPath(points: { x: number; y: number }[], baseline: number) {
+  if (points.length < 2) return "";
+  const linePath = buildSmoothPath(points);
+  const first = points[0];
+  const last = points[points.length - 1];
+  return `${linePath} L${last.x} ${baseline} L${first.x} ${baseline} Z`;
 }
 
-function shortenMoment(value: string) {
-  return value
-    .replace("Después", "Desp.")
-    .replace("Antes", "Ant.")
-    .replace("desayuno", "des.")
-    .replace("almuerzo", "alm.")
-    .replace("merienda", "mer.")
-    .replace("cena", "cena")
-    .slice(0, 12);
+function findExtremeRecord(records: PatientRecordChartPoint[], type: "min" | "max") {
+  return records.reduce<PatientRecordChartPoint | null>((selected, record) => {
+    const value = Number(record.glucemia_mgdl);
+    if (!Number.isFinite(value)) return selected;
+    if (!selected) return record;
+    const selectedValue = Number(selected.glucemia_mgdl);
+    return type === "min" ? (value < selectedValue ? record : selected) : value > selectedValue ? record : selected;
+  }, null);
+}
+
+function startOfDay(date: Date) {
+  const copy = new Date(date);
+  copy.setHours(0, 0, 0, 0);
+  return copy;
+}
+
+function isSameDay(left: Date, right: Date) {
+  return startOfDay(left).getTime() === startOfDay(right).getTime();
+}
+
+function formatMetricValue(value: number | null) {
+  return value === null ? "--" : String(value);
+}
+
+function normalizeMetric(value: number, min: number, max: number) {
+  return Math.max(4, Math.min(100, ((value - min) * 100) / (max - min || 1)));
 }
 
 function formatShortDate(value: string | undefined) {
@@ -277,4 +372,10 @@ function formatShortDate(value: string | undefined) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "--";
   return date.toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit" });
+}
+
+function formatTime(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "--";
+  return date.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" });
 }

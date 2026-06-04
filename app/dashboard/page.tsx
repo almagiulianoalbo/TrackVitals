@@ -4,7 +4,7 @@ import { DoctorDashboardPanel, type DoctorPatientPreview } from "@/components/Do
 import { PatientDashboardPanel } from "@/components/PatientDashboardPanel";
 import { getCurrentSession } from "@/lib/auth";
 import type { SessionUser } from "@/lib/auth-types";
-import { formatDateTime, formatValue } from "@/lib/dashboard-format";
+import { formatValue } from "@/lib/dashboard-format";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 type DashboardData = {
@@ -48,7 +48,7 @@ export default async function DashboardPage() {
         <DoctorDashboardPanel patients={data.assignedPatients} patientsCount={data.assignedPatientsCount} alertCount={data.doctorAlertCount} />
       ) : (
         <PatientDashboardPanel
-          nextAppointmentValue={data.nextAppointment ? formatDateTime(data.nextAppointment.fecha_hora) : "--"}
+          nextAppointmentValue={data.nextAppointment ? formatAppointmentShortcut(data.nextAppointment.fecha_hora) : "--"}
           nextAppointmentStatus={data.nextAppointment ? formatValue(data.nextAppointment.motivo, "Turno pendiente") : "Sin turno cargado"}
           alertCount={data.patientAlertCount}
           records={data.patientRecords}
@@ -131,6 +131,17 @@ async function getDashboardData(user: SessionUser): Promise<DashboardData> {
 
 function toSupabaseTimestamp(date: Date) {
   return date.toISOString().replace("T", " ").slice(0, 19);
+}
+
+function formatAppointmentShortcut(value: string | null) {
+  if (!value) return "--";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "--";
+
+  const day = date.toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "2-digit" });
+  const time = date.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" });
+  return `${day} · ${time}`;
 }
 
 async function getLatestRecordByPatient(patientIds: number[]) {

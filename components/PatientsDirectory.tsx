@@ -1,7 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import { getInitials } from "@/components/DashboardChrome";
+import { PatientLinkFields } from "@/components/PatientLinkFields";
 import { formatDate, formatValue } from "@/lib/dashboard-format";
 
 export type PatientDirectoryRow = {
@@ -14,8 +16,16 @@ export type PatientDirectoryRow = {
   tipo_diabetes: string | null;
 };
 
+const initialSubmitState = {
+  loading: false,
+  error: null as string | null
+};
+
 export function PatientsDirectory({ patients }: { patients: PatientDirectoryRow[] }) {
+  const router = useRouter();
   const [query, setQuery] = useState("");
+  const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
+  const [submitState, setSubmitState] = useState(initialSubmitState);
   const [selectedId, setSelectedId] = useState<number | null>(patients[0]?.id_paciente ?? null);
   const filteredPatients = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -23,6 +33,42 @@ export function PatientsDirectory({ patients }: { patients: PatientDirectoryRow[
     return patients.filter((patient) => getPatientName(patient).toLowerCase().includes(normalizedQuery) || patient.email?.toLowerCase().includes(normalizedQuery));
   }, [patients, query]);
   const selectedPatient = patients.find((patient) => patient.id_paciente === selectedId) ?? filteredPatients[0] ?? null;
+
+  function closeLinkModal() {
+    if (submitState.loading) return;
+    setSubmitState(initialSubmitState);
+    setIsLinkModalOpen(false);
+  }
+
+  async function submitLinkPatient(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const payload = Object.fromEntries(new FormData(form).entries());
+
+    setSubmitState({ loading: true, error: null });
+
+    try {
+      const response = await fetch("/api/dashboard/pacientes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = (await response.json()) as { error?: string };
+
+      if (!response.ok) {
+        setSubmitState({ loading: false, error: data.error ?? "No se pudo agregar el paciente." });
+        return;
+      }
+
+      form.reset();
+      setQuery("");
+      setIsLinkModalOpen(false);
+      setSubmitState(initialSubmitState);
+      router.refresh();
+    } catch {
+      setSubmitState({ loading: false, error: "No se pudo conectar con el servidor." });
+    }
+  }
 
   return (
     <section className="patients-directory">
@@ -32,7 +78,12 @@ export function PatientsDirectory({ patients }: { patients: PatientDirectoryRow[
           <h2>Directorio clínico</h2>
           <p>Buscá y revisá la información clave sin llenar la pantalla de datos.</p>
         </div>
-        <span>{patients.length} pacientes</span>
+        <div className="patients-directory-actions">
+          <span>{patients.length} pacientes</span>
+          <button className="primary-button" type="button" onClick={() => setIsLinkModalOpen(true)}>
+            Agregar paciente
+          </button>
+        </div>
       </div>
 
       <label className="directory-search">
@@ -91,6 +142,33 @@ export function PatientsDirectory({ patients }: { patients: PatientDirectoryRow[
           )}
         </article>
       </div>
+
+      {isLinkModalOpen ? (
+        <div className="modal-backdrop" role="presentation">
+          <section className="action-modal" role="dialog" aria-modal="true" aria-labelledby="patient-link-title">
+            <div className="section-heading">
+              <div>
+                <p className="eyebrow">Directorio clínico</p>
+                <h2 id="patient-link-title">Agregar paciente</h2>
+              </div>
+              <button className="modal-close" type="button" onClick={closeLinkModal} disabled={submitState.loading} aria-label="Cerrar">
+                ×
+              </button>
+            </div>
+
+            <form className="modal-form" onSubmit={submitLinkPatient}>
+              <PatientLinkFields />
+
+              {submitState.error ? <p className="form-error">{submitState.error}</p> : null}
+              <div className="modal-actions">
+                <button className="primary-button" type="submit" disabled={submitState.loading}>
+                  {submitState.loading ? "Guardando..." : "Agregar paciente"}
+                </button>
+              </div>
+            </form>
+          </section>
+        </div>
+      ) : null}
     </section>
   );
 }

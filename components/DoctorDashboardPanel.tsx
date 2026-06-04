@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getInitials } from "@/components/DashboardChrome";
+import { PatientLinkFields } from "@/components/PatientLinkFields";
 
 type ModalType = "patient" | "prescription";
 type RangeKey = "7d" | "1m" | "3m";
@@ -286,7 +287,7 @@ export function DoctorDashboardPanel({
             </div>
 
             <form className="modal-form" onSubmit={submitForm}>
-              {activeModal === "patient" ? <PatientFields /> : null}
+              {activeModal === "patient" ? <PatientLinkFields /> : null}
               {activeModal === "prescription" ? <PrescriptionFields patients={patients} /> : null}
 
               {submitState.error ? <p className="form-error">{submitState.error}</p> : null}
@@ -299,25 +300,6 @@ export function DoctorDashboardPanel({
           </section>
         </div>
       ) : null}
-    </div>
-  );
-}
-
-function PatientFields() {
-  return (
-    <div className="field-grid">
-      <label className="field">
-        <span>ID paciente</span>
-        <input name="id_paciente" type="number" min="1" step="1" placeholder="Ej. 12" />
-      </label>
-      <label className="field">
-        <span>Email</span>
-        <input name="email" type="email" placeholder="paciente@email.com" />
-      </label>
-      <label className="field">
-        <span>DNI</span>
-        <input name="dni" type="text" inputMode="numeric" placeholder="DNI del paciente" />
-      </label>
     </div>
   );
 }
