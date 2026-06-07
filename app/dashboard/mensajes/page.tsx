@@ -13,7 +13,7 @@ export default async function MessagesPage() {
 
   return (
     <DashboardShell user={user} activeItem="mensajes" subtitle="Mensajes entre paciente y médico.">
-      <MessagesCenter contacts={contacts} messages={messages} role={user.role} userId={user.userId} />
+      <MessagesCenter contacts={contacts} messages={messages} role={user.role} />
     </DashboardShell>
   );
 }

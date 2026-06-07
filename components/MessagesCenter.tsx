@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 
 type UserRole = "paciente" | "medico";
 type FilterKey = "todos" | "no-leidos";
@@ -41,20 +40,45 @@ type Conversation = MessageContact & {
 export function MessagesCenter({
   contacts,
   messages,
-  role,
-  userId
+  role
 }: {
   contacts: MessageContact[];
   messages: MessageRow[];
   role: UserRole;
-  userId: number;
 }) {
   const [filter, setFilter] = useState<FilterKey>("todos");
-  const conversations = useMemo(() => buildConversations(contacts, messages, role), [contacts, messages, role]);
+  const [liveMessages, setLiveMessages] = useState(messages);
+  const conversations = useMemo(() => buildConversations(contacts, liveMessages, role), [contacts, liveMessages, role]);
   const visibleConversations = conversations.filter((conversation) => filter === "todos" || conversation.unread > 0);
   const [selectedContactId, setSelectedContactId] = useState<number | null>(visibleConversations[0]?.id ?? conversations[0]?.id ?? null);
   const selected = conversations.find((conversation) => conversation.id === selectedContactId) ?? visibleConversations[0] ?? conversations[0] ?? null;
   const unreadCount = conversations.reduce((sum, conversation) => sum + conversation.unread, 0);
+  const refreshMessages = useCallback(async () => {
+    const response = await fetch("/api/dashboard/mensajes", { cache: "no-store" });
+    const data = (await response.json().catch(() => null)) as { messages?: MessageRow[] } | null;
+
+    if (!response.ok || !Array.isArray(data?.messages)) return;
+    setLiveMessages(data.messages);
+  }, []);
+
+  useEffect(() => {
+    setLiveMessages(messages);
+  }, [messages]);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      if (document.visibilityState === "visible") {
+        refreshMessages().catch(() => undefined);
+      }
+    }, 3000);
+
+    window.addEventListener("focus", refreshMessages);
+
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("focus", refreshMessages);
+    };
+  }, [refreshMessages]);
 
   useEffect(() => {
     if (!selected?.unread) return;
@@ -63,8 +87,19 @@ export function MessagesCenter({
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ contacto_id: selected.id })
-    }).catch(() => undefined);
-  }, [selected?.id, selected?.unread]);
+    })
+      .then((response) => {
+        if (!response.ok) return;
+        setLiveMessages((currentMessages) =>
+          currentMessages.map((message) =>
+            getContactId(message, role) === selected.id && !isOwnMessage(message, role)
+              ? { ...message, leido: true }
+              : message
+          )
+        );
+      })
+      .catch(() => undefined);
+  }, [role, selected?.id, selected?.unread]);
 
   return (
     <section className="messages-center">
@@ -114,19 +149,26 @@ export function MessagesCenter({
           </div>
         </aside>
 
-        <ConversationPanel conversation={selected} role={role} userId={userId} />
+        <ConversationPanel conversation={selected} role={role} onMessagesChanged={refreshMessages} />
       </div>
     </section>
   );
 }
 
-function ConversationPanel({ conversation, role, userId }: { conversation: Conversation | null; role: UserRole; userId: number }) {
+function ConversationPanel({
+  conversation,
+  role,
+  onMessagesChanged
+}: {
+  conversation: Conversation | null;
+  role: UserRole;
+  onMessagesChanged: () => Promise<void>;
+}) {
   const [text, setText] = useState("");
   const [category, setCategory] = useState("Consulta");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const streamRef = useRef<HTMLDivElement>(null);
-  const router = useRouter();
 
   useEffect(() => {
     const stream = streamRef.current;
@@ -167,8 +209,8 @@ function ConversationPanel({ conversation, role, userId }: { conversation: Conve
     }
 
     setText("");
+    await onMessagesChanged();
     setLoading(false);
-    router.refresh();
   }
 
   return (

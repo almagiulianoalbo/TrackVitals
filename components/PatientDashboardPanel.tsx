@@ -25,7 +25,7 @@ export function PatientDashboardPanel({
       </section>
 
       <section className="clinical-grid patient-main-grid">
-        <article className="dashboard-card patient-focus">
+        <article className="patient-focus patient-focus-flat">
           <div className="section-heading">
             <div>
               <p className="eyebrow">Últimos 7 días</p>

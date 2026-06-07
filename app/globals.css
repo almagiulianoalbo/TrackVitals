@@ -1712,6 +1712,18 @@ body:has(.auth-overlay:target) {
     rgba(255, 255, 255, 0.96);
 }
 
+.patient-focus-flat {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+}
+
+.patient-focus-flat > .section-heading {
+  padding-inline: 18px;
+}
+
 .stacked-card {
   align-content: start;
 }

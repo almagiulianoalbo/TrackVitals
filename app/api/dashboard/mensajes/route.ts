@@ -3,6 +3,40 @@ import { getCurrentSession } from "@/lib/auth";
 import { jsonError } from "@/lib/auth-responses";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
+export async function GET() {
+  const user = await getCurrentSession();
+
+  if (!user) {
+    return jsonError("No hay una sesión activa.", 401);
+  }
+
+  try {
+    const filterColumn = user.role === "medico" ? "id_medico" : "id_paciente";
+    const { data, error } = await getSupabaseAdmin()
+      .from("mensajes")
+      .select("id_mensaje,id_paciente,id_medico,remitente,asunto,contenido,leido,fecha_hora,pacientes(nombre,apellido,email),medicos(nombre,apellido,email)")
+      .eq(filterColumn, user.userId)
+      .order("fecha_hora", { ascending: true });
+
+    if (error) {
+      console.error(error);
+      return jsonError("No se pudieron cargar los mensajes.", 500);
+    }
+
+    return NextResponse.json(
+      { messages: data ?? [] },
+      {
+        headers: {
+          "Cache-Control": "no-store"
+        }
+      }
+    );
+  } catch (error) {
+    console.error(error);
+    return jsonError("No se pudieron cargar los mensajes.", 500);
+  }
+}
+
 export async function POST(request: Request) {
   const user = await getCurrentSession();
 
