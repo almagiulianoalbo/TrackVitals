@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { getInitials } from "@/components/DashboardChrome";
 import { PatientLinkFields } from "@/components/PatientLinkFields";
 
-type ModalType = "patient" | "prescription";
+type ModalType = "patient" | "prescription" | "appointment";
 type RangeKey = "7d" | "1m" | "3m";
 
 export type DoctorPatientPreview = {
@@ -131,10 +131,10 @@ export function DoctorDashboardPanel({
     const payload = Object.fromEntries(new FormData(form).entries());
     const endpointByModal: Record<ModalType, string> = {
       patient: "/api/dashboard/pacientes",
-      prescription: "/api/dashboard/prescripciones"
+      prescription: "/api/dashboard/prescripciones",
+      appointment: "/api/dashboard/turnos"
     };
-    const fallbackError =
-      activeModal === "patient" ? "No se pudo agregar el paciente." : "No se pudo crear la prescripción.";
+    const fallbackError = getModalFallbackError(activeModal);
 
     setSubmitState({ loading: true, message: null, error: null });
 
@@ -172,7 +172,7 @@ export function DoctorDashboardPanel({
           tone="danger"
         />
         <ActionMetricCard label="Crear prescripción" value="+" status="Medicamentos e indicaciones" onClick={() => openModal("prescription")} />
-        <LinkMetricCard href="/dashboard/turnos" label="Agenda" value="Ver" status="Próximos turnos" />
+        <ActionMetricCard label="Agregar turno" value="+" status="Programar control" onClick={() => openModal("appointment")} />
       </section>
 
       <section className="clinical-grid">
@@ -279,7 +279,7 @@ export function DoctorDashboardPanel({
             <div className="section-heading">
               <div>
                 <p className="eyebrow">Acción rápida</p>
-                <h2 id="doctor-action-title">{activeModal === "patient" ? "Agregar paciente" : "Crear prescripción"}</h2>
+                <h2 id="doctor-action-title">{getModalTitle(activeModal)}</h2>
               </div>
               <button className="modal-close" type="button" onClick={closeModal} disabled={submitState.loading} aria-label="Cerrar">
                 ×
@@ -289,17 +289,46 @@ export function DoctorDashboardPanel({
             <form className="modal-form" onSubmit={submitForm}>
               {activeModal === "patient" ? <PatientLinkFields /> : null}
               {activeModal === "prescription" ? <PrescriptionFields patients={patients} /> : null}
+              {activeModal === "appointment" ? <AppointmentFields patients={patients} selectedPatientId={selectedPatient?.id_paciente ?? null} /> : null}
 
               {submitState.error ? <p className="form-error">{submitState.error}</p> : null}
               <div className="modal-actions">
                 <button className="primary-button" type="submit" disabled={submitState.loading}>
-                  {submitState.loading ? "Guardando..." : activeModal === "patient" ? "Agregar paciente" : "Crear prescripción"}
+                  {submitState.loading ? "Guardando..." : getModalSubmitLabel(activeModal)}
                 </button>
               </div>
             </form>
           </section>
         </div>
       ) : null}
+    </div>
+  );
+}
+
+function AppointmentFields({ patients, selectedPatientId }: { patients: DoctorPatientPreview[]; selectedPatientId: number | null }) {
+  return (
+    <div className="field-grid">
+      <label className="field">
+        <span>Paciente</span>
+        <select name="id_paciente" required defaultValue={selectedPatientId ?? ""}>
+          <option value="" disabled>
+            Seleccionar paciente
+          </option>
+          {patients.map((patient) => (
+            <option value={patient.id_paciente} key={patient.id_paciente}>
+              {patient.nombre} {patient.apellido} - ID: {patient.id_paciente}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="field">
+        <span>Fecha y hora</span>
+        <input name="fecha_hora" type="datetime-local" defaultValue={getNowInputValue(1)} required />
+      </label>
+      <label className="field field-full">
+        <span>Motivo</span>
+        <textarea name="motivo" rows={4} placeholder="Ej. Control de laboratorio, ajuste de tratamiento..." required />
+      </label>
     </div>
   );
 }
@@ -366,6 +395,32 @@ function PrescriptionFields({ patients }: { patients: DoctorPatientPreview[] }) 
       </label>
     </div>
   );
+}
+
+function getModalTitle(type: ModalType) {
+  if (type === "patient") return "Agregar paciente";
+  if (type === "prescription") return "Crear prescripción";
+  return "Agregar turno";
+}
+
+function getModalSubmitLabel(type: ModalType) {
+  if (type === "patient") return "Agregar paciente";
+  if (type === "prescription") return "Crear prescripción";
+  return "Agregar turno";
+}
+
+function getModalFallbackError(type: ModalType) {
+  if (type === "patient") return "No se pudo agregar el paciente.";
+  if (type === "prescription") return "No se pudo crear la prescripción.";
+  return "No se pudo crear el turno.";
+}
+
+function getNowInputValue(daysToAdd = 0) {
+  const date = new Date();
+  date.setDate(date.getDate() + daysToAdd);
+  date.setSeconds(0, 0);
+  const offsetDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return offsetDate.toISOString().slice(0, 16);
 }
 
 function ActionMetricCard({ label, value, status, onClick }: { label: string; value: string; status: string; onClick: () => void }) {

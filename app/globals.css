@@ -3037,6 +3037,13 @@ body:has(.auth-overlay:target) {
   padding: 14px;
 }
 
+.meal-card.completed {
+  border-color: rgba(20, 184, 166, 0.34);
+  background:
+    linear-gradient(135deg, rgba(230, 247, 243, 0.9), rgba(255, 255, 255, 0.96)),
+    var(--surface);
+}
+
 .meal-index {
   z-index: 1;
   display: inline-grid;
@@ -3068,6 +3075,54 @@ body:has(.auth-overlay:target) {
   line-height: 1.25;
 }
 
+.meal-card-heading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.meal-compliance-summary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  border: 1px solid rgba(20, 184, 166, 0.22);
+  border-radius: 999px;
+  background: rgba(230, 247, 243, 0.72);
+  color: var(--blue-700);
+  font-size: 0.8rem;
+  font-weight: 800;
+  padding: 8px 12px;
+}
+
+.meal-complete-button {
+  border: 1px solid rgba(20, 184, 166, 0.28);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.84);
+  color: #087d71;
+  cursor: pointer;
+  font-size: 0.76rem;
+  font-weight: 800;
+  padding: 7px 10px;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.meal-complete-button:hover:not(:disabled) {
+  border-color: rgba(20, 184, 166, 0.48);
+  box-shadow: 0 10px 20px rgba(20, 184, 166, 0.12);
+  transform: translateY(-1px);
+}
+
+.meal-complete-button:disabled {
+  cursor: default;
+  opacity: 0.74;
+}
+
 .meal-macros {
   display: flex;
   flex-wrap: wrap;
@@ -3082,6 +3137,33 @@ body:has(.auth-overlay:target) {
   font-size: 0.78rem;
   font-weight: 700;
   padding: 6px 9px;
+}
+
+.meal-macros .ig-badge {
+  color: var(--ink-900);
+}
+
+.ig-badge.bajo {
+  background: rgba(65, 184, 111, 0.16);
+  color: #257a45;
+}
+
+.ig-badge.medio {
+  background: rgba(205, 139, 35, 0.16);
+  color: #8a5c13;
+}
+
+.ig-badge.alto {
+  background: rgba(216, 61, 76, 0.14);
+  color: var(--red-500);
+}
+
+.meal-glucose-insight {
+  margin: 10px 0 0;
+  color: var(--ink-500);
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.4;
 }
 
 .food-plan-status {
@@ -3120,12 +3202,6 @@ body:has(.auth-overlay:target) {
   place-items: center;
   aspect-ratio: 1;
   border-radius: 50%;
-  background:
-    radial-gradient(circle, var(--surface) 0 55%, transparent 56%),
-    conic-gradient(var(--blue-600) var(--value), rgba(215, 230, 236, 0.8) 0);
-}
-
-.macro-ring.carbs {
   background:
     radial-gradient(circle, var(--surface) 0 55%, transparent 56%),
     conic-gradient(var(--blue-700) var(--value), rgba(215, 230, 236, 0.8) 0);

@@ -90,9 +90,7 @@ async function getDashboardData(user: SessionUser): Promise<DashboardData> {
 
       return {
         ...fallback,
-        assignedPatients: assignedPatients
-          .toSorted((left, right) => compareQuickPatients(left, right, latestRecordByPatient))
-          .slice(0, 4),
+        assignedPatients: assignedPatients.toSorted((left, right) => compareQuickPatients(left, right, latestRecordByPatient)),
         assignedPatientsCount: count ?? 0,
         doctorAlertCount: alertCount ?? 0
       };

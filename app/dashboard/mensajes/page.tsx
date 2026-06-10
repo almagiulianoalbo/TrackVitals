@@ -24,7 +24,7 @@ async function getMessages(user: SessionUser) {
     const filterColumn = user.role === "medico" ? "id_medico" : "id_paciente";
     const { data, error } = await supabase
       .from("mensajes")
-      .select("id_mensaje,id_paciente,id_medico,remitente,asunto,contenido,leido,fecha_hora,pacientes(nombre,apellido,email),medicos(nombre,apellido,email)")
+      .select("id_mensaje,id_paciente,id_medico,remitente,asunto,contenido,leido,fecha_hora")
       .eq(filterColumn, user.userId)
       .order("fecha_hora", { ascending: true });
 

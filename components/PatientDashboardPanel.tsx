@@ -1,5 +1,21 @@
+"use client";
+
+import { useState, type FormEvent } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { PatientRecordChartPoint } from "@/app/dashboard/page";
+
+type PatientModalType = "record" | "appointment";
+
+type SubmitState = {
+  loading: boolean;
+  error: string | null;
+};
+
+const initialSubmitState: SubmitState = {
+  loading: false,
+  error: null
+};
 
 export function PatientDashboardPanel({
   nextAppointmentValue,
@@ -14,12 +30,59 @@ export function PatientDashboardPanel({
 }) {
   const latest = records.at(-1);
   const weeklySummary = buildWeeklySummary(records);
+  const [activeModal, setActiveModal] = useState<PatientModalType | null>(null);
+  const [submitState, setSubmitState] = useState<SubmitState>(initialSubmitState);
+  const router = useRouter();
+
+  function openModal(type: PatientModalType) {
+    setSubmitState(initialSubmitState);
+    setActiveModal(type);
+  }
+
+  function closeModal() {
+    if (submitState.loading) return;
+    setActiveModal(null);
+    setSubmitState(initialSubmitState);
+  }
+
+  async function submitModal(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!activeModal) return;
+
+    const form = event.currentTarget;
+    const payload = Object.fromEntries(new FormData(form).entries());
+    const endpoint = activeModal === "record" ? "/api/dashboard/registros-diarios" : "/api/dashboard/turnos";
+    const fallbackError = activeModal === "record" ? "No se pudo cargar el registro." : "No se pudo crear el turno.";
+
+    setSubmitState({ loading: true, error: null });
+
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = (await response.json().catch(() => ({}))) as { error?: string };
+
+      if (!response.ok) {
+        setSubmitState({ loading: false, error: data.error ?? fallbackError });
+        return;
+      }
+
+      form.reset();
+      setActiveModal(null);
+      setSubmitState(initialSubmitState);
+      router.refresh();
+    } catch {
+      setSubmitState({ loading: false, error: "No se pudo conectar con el servidor." });
+    }
+  }
 
   return (
     <div className="dashboard-content">
       <section className="metric-grid" aria-label="Acciones rápidas">
-        <LinkMetric href="/dashboard/mis-registros" label="Mis registros" value={latest?.glucemia_mgdl ? `${latest.glucemia_mgdl}` : "--"} status="Última glucemia" />
-        <LinkMetric href="/dashboard/turnos" label="Próximo control" value={nextAppointmentValue} status={nextAppointmentStatus} valueStyle="date" />
+        <ActionMetric label="Mis registros" value={latest?.glucemia_mgdl ? `${latest.glucemia_mgdl}` : "--"} status="Cargar nuevo registro" onClick={() => openModal("record")} />
+        <ActionMetric label="Próximo control" value={nextAppointmentValue} status={nextAppointmentStatus} valueStyle="date" onClick={() => openModal("appointment")} />
         <LinkMetric href="/dashboard/alertas" label="Alertas" value={String(alertCount)} status={alertCount ? "Pendientes" : "Sin pendientes"} />
         <LinkMetric href="/dashboard/medicacion" label="Medicación" value="Ver" status="Indicaciones activas" />
       </section>
@@ -43,7 +106,45 @@ export function PatientDashboardPanel({
           </div>
         </article>
       </section>
+
+      {activeModal ? (
+        <div className="modal-backdrop" role="presentation">
+          <section className="action-modal" role="dialog" aria-modal="true" aria-labelledby="patient-action-title">
+            <div className="section-heading">
+              <div>
+                <p className="eyebrow">Acción rápida</p>
+                <h2 id="patient-action-title">{activeModal === "record" ? "Nuevo registro" : "Nuevo turno"}</h2>
+              </div>
+              <button className="modal-close" type="button" onClick={closeModal} disabled={submitState.loading} aria-label="Cerrar">
+                ×
+              </button>
+            </div>
+
+            <form className="modal-form" onSubmit={submitModal}>
+              {activeModal === "record" ? <RecordFields /> : null}
+              {activeModal === "appointment" ? <AppointmentFields /> : null}
+
+              {submitState.error ? <p className="form-error">{submitState.error}</p> : null}
+              <div className="modal-actions">
+                <button className="primary-button" type="submit" disabled={submitState.loading}>
+                  {submitState.loading ? "Guardando..." : activeModal === "record" ? "Guardar registro" : "Agregar turno"}
+                </button>
+              </div>
+            </form>
+          </section>
+        </div>
+      ) : null}
     </div>
+  );
+}
+
+function ActionMetric({ label, value, status, valueStyle, onClick }: { label: string; value: string; status: string; valueStyle?: "date"; onClick: () => void }) {
+  return (
+    <button className="metric-card action-metric-card" type="button" onClick={onClick}>
+      <span>{label}</span>
+      <strong className={valueStyle === "date" ? "metric-date-value" : undefined}>{value}</strong>
+      <em>{status}</em>
+    </button>
   );
 }
 
@@ -55,6 +156,69 @@ function LinkMetric({ href, label, value, status, valueStyle }: { href: string; 
       <em>{status}</em>
     </Link>
   );
+}
+
+function RecordFields() {
+  return (
+    <div className="field-grid">
+      <label className="field">
+        <span>Fecha y hora</span>
+        <input name="fecha_hora" type="datetime-local" defaultValue={getNowInputValue()} required />
+      </label>
+      <label className="field">
+        <span>Momento</span>
+        <select name="momento" defaultValue="Antes del desayuno">
+          <option>Antes del desayuno</option>
+          <option>Después del desayuno</option>
+          <option>Antes del almuerzo</option>
+          <option>Después del almuerzo</option>
+          <option>Antes de la merienda</option>
+          <option>Después de la merienda</option>
+          <option>Antes de la cena</option>
+          <option>Después de la cena</option>
+        </select>
+      </label>
+      <label className="field">
+        <span>Glucemia (mg/dL)</span>
+        <input name="glucemia_mgdl" type="number" min="0" placeholder="Ej. 104" />
+      </label>
+      <label className="field">
+        <span>Carbohidratos (g)</span>
+        <input name="carbohidratos_g" type="number" min="0" placeholder="Ej. 45" />
+      </label>
+      <label className="field">
+        <span>Tipo de insulina</span>
+        <input name="tipo_insulina" type="text" placeholder="Ej. rápida" />
+      </label>
+      <label className="field">
+        <span>Dosis (unidades)</span>
+        <input name="dosis_unidades" type="number" min="0" step="0.1" placeholder="Ej. 4" />
+      </label>
+    </div>
+  );
+}
+
+function AppointmentFields() {
+  return (
+    <div className="field-grid">
+      <label className="field">
+        <span>Fecha y hora</span>
+        <input name="fecha_hora" type="datetime-local" defaultValue={getNowInputValue(1)} required />
+      </label>
+      <label className="field field-full">
+        <span>Motivo</span>
+        <textarea name="motivo" rows={4} placeholder="Ej. Control de laboratorio, ajuste de medicación..." required />
+      </label>
+    </div>
+  );
+}
+
+function getNowInputValue(daysToAdd = 0) {
+  const date = new Date();
+  date.setDate(date.getDate() + daysToAdd);
+  date.setSeconds(0, 0);
+  const offsetDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return offsetDate.toISOString().slice(0, 16);
 }
 
 function WeeklyGlucoseChart({ summary }: { summary: WeeklySummary }) {

@@ -3,6 +3,8 @@ import { getCurrentSession } from "@/lib/auth";
 import { jsonError } from "@/lib/auth-responses";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
+const MESSAGE_SELECT = "id_mensaje,id_paciente,id_medico,remitente,asunto,contenido,leido,fecha_hora";
+
 export async function GET() {
   const user = await getCurrentSession();
 
@@ -14,7 +16,7 @@ export async function GET() {
     const filterColumn = user.role === "medico" ? "id_medico" : "id_paciente";
     const { data, error } = await getSupabaseAdmin()
       .from("mensajes")
-      .select("id_mensaje,id_paciente,id_medico,remitente,asunto,contenido,leido,fecha_hora,pacientes(nombre,apellido,email),medicos(nombre,apellido,email)")
+      .select(MESSAGE_SELECT)
       .eq(filterColumn, user.userId)
       .order("fecha_hora", { ascending: true });
 
@@ -81,7 +83,7 @@ export async function POST(request: Request) {
         leido: false,
         fecha_hora: toSupabaseTimestamp(new Date())
       })
-      .select("id_mensaje")
+      .select(MESSAGE_SELECT)
       .single();
 
     if (error) {

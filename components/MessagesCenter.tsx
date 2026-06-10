@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } fro
 
 type UserRole = "paciente" | "medico";
 type FilterKey = "todos" | "no-leidos";
+const MESSAGE_REFRESH_INTERVAL_MS = 1500;
 
 type RelatedPerson = {
   nombre: string | null;
@@ -54,11 +55,20 @@ export function MessagesCenter({
   const selected = conversations.find((conversation) => conversation.id === selectedContactId) ?? visibleConversations[0] ?? conversations[0] ?? null;
   const unreadCount = conversations.reduce((sum, conversation) => sum + conversation.unread, 0);
   const refreshMessages = useCallback(async () => {
-    const response = await fetch("/api/dashboard/mensajes", { cache: "no-store" });
+    const response = await fetch("/api/dashboard/mensajes", {
+      cache: "no-store",
+      credentials: "same-origin",
+      headers: { Accept: "application/json" }
+    });
     const data = (await response.json().catch(() => null)) as { messages?: MessageRow[] } | null;
 
-    if (!response.ok || !Array.isArray(data?.messages)) return;
-    setLiveMessages(data.messages);
+    if (!response.ok || !Array.isArray(data?.messages)) return false;
+    setLiveMessages(sortMessages(data.messages));
+    return true;
+  }, []);
+
+  const upsertLiveMessage = useCallback((message: MessageRow) => {
+    setLiveMessages((currentMessages) => sortMessages(upsertMessage(currentMessages, message)));
   }, []);
 
   useEffect(() => {
@@ -66,17 +76,31 @@ export function MessagesCenter({
   }, [messages]);
 
   useEffect(() => {
+    refreshMessages().catch(() => undefined);
+
     const interval = window.setInterval(() => {
       if (document.visibilityState === "visible") {
         refreshMessages().catch(() => undefined);
       }
-    }, 3000);
+    }, MESSAGE_REFRESH_INTERVAL_MS);
 
-    window.addEventListener("focus", refreshMessages);
+    const handleFocus = () => {
+      refreshMessages().catch(() => undefined);
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        refreshMessages().catch(() => undefined);
+      }
+    };
+
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       window.clearInterval(interval);
-      window.removeEventListener("focus", refreshMessages);
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [refreshMessages]);
 
@@ -86,6 +110,7 @@ export function MessagesCenter({
     fetch("/api/dashboard/mensajes", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
       body: JSON.stringify({ contacto_id: selected.id })
     })
       .then((response) => {
@@ -149,7 +174,12 @@ export function MessagesCenter({
           </div>
         </aside>
 
-        <ConversationPanel conversation={selected} role={role} onMessagesChanged={refreshMessages} />
+        <ConversationPanel
+          conversation={selected}
+          role={role}
+          onMessageCreated={upsertLiveMessage}
+          onMessagesChanged={refreshMessages}
+        />
       </div>
     </section>
   );
@@ -158,11 +188,13 @@ export function MessagesCenter({
 function ConversationPanel({
   conversation,
   role,
+  onMessageCreated,
   onMessagesChanged
 }: {
   conversation: Conversation | null;
   role: UserRole;
-  onMessagesChanged: () => Promise<void>;
+  onMessageCreated: (message: MessageRow) => void;
+  onMessagesChanged: () => Promise<boolean>;
 }) {
   const [text, setText] = useState("");
   const [category, setCategory] = useState("Consulta");
@@ -194,13 +226,14 @@ function ConversationPanel({
     const response = await fetch("/api/dashboard/mensajes", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
       body: JSON.stringify({
         contacto_id: conversation.id,
         categoria: category,
         contenido: text
       })
     });
-    const data = (await response.json().catch(() => ({}))) as { error?: string };
+    const data = (await response.json().catch(() => ({}))) as { error?: string; record?: MessageRow };
 
     if (!response.ok) {
       setError(data.error ?? "No se pudo enviar el mensaje.");
@@ -209,6 +242,9 @@ function ConversationPanel({
     }
 
     setText("");
+    if (data.record) {
+      onMessageCreated(data.record);
+    }
     await onMessagesChanged();
     setLoading(false);
   }
@@ -280,6 +316,19 @@ function buildConversations(contacts: MessageContact[], messages: MessageRow[], 
       const rightTime = right.lastMessage ? new Date(right.lastMessage.fecha_hora).getTime() : 0;
       return rightTime - leftTime;
     });
+}
+
+function sortMessages(messages: MessageRow[]) {
+  return [...messages].sort((left, right) => new Date(left.fecha_hora).getTime() - new Date(right.fecha_hora).getTime());
+}
+
+function upsertMessage(messages: MessageRow[], message: MessageRow) {
+  const index = messages.findIndex((currentMessage) => currentMessage.id_mensaje === message.id_mensaje);
+  if (index === -1) return [...messages, message];
+
+  const nextMessages = [...messages];
+  nextMessages[index] = message;
+  return nextMessages;
 }
 
 function getContactId(message: MessageRow, role: UserRole) {
