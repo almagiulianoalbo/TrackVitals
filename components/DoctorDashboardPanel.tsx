@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getInitials } from "@/components/DashboardChrome";
 import { PatientLinkFields } from "@/components/PatientLinkFields";
+import { formatDateTime } from "@/lib/dashboard-format";
 
 type ModalType = "patient" | "prescription" | "appointment";
 type RangeKey = "7d" | "1m" | "3m";
@@ -172,58 +173,64 @@ export function DoctorDashboardPanel({
           tone="danger"
         />
         <ActionMetricCard label="Crear prescripción" value="+" status="Medicamentos e indicaciones" onClick={() => openModal("prescription")} />
-        <ActionMetricCard label="Agregar turno" value="+" status="Programar control" onClick={() => openModal("appointment")} />
+        <ActionMetricCard label="Agenda" value="+" status="Agendar turno" onClick={() => openModal("appointment")} />
       </section>
 
-      <section className="clinical-grid">
+      <section className="clinical-grid doctor-overview-grid">
         <article className="dashboard-card patient-focus">
-          <div className="section-heading">
-            <div>
-              <p className="eyebrow">Paciente seleccionado</p>
-              <h2>{selectedPatient ? `${selectedPatient.nombre} ${selectedPatient.apellido}` : "Sin pacientes asignados"}</h2>
+          <div className="doctor-patient-top">
+            <div className="doctor-patient-summary">
+              <div className="section-heading">
+                <div>
+                  <p className="eyebrow">Paciente seleccionado</p>
+                  <h2>{selectedPatient ? `${selectedPatient.nombre} ${selectedPatient.apellido}` : "Sin pacientes asignados"}</h2>
+                </div>
+                <div className="period-tabs" aria-label="Rango de análisis">
+                  <button className={range === "7d" ? "active" : ""} type="button" onClick={() => setRange("7d")}>
+                    7 días
+                  </button>
+                  <button className={range === "1m" ? "active" : ""} type="button" onClick={() => setRange("1m")}>
+                    1 mes
+                  </button>
+                  <button className={range === "3m" ? "active" : ""} type="button" onClick={() => setRange("3m")}>
+                    3 meses
+                  </button>
+                </div>
+              </div>
+
+              <div className="patient-row">
+                <span className="avatar-badge" aria-hidden="true">
+                  {selectedPatient ? getInitials(`${selectedPatient.nombre} ${selectedPatient.apellido}`) : "--"}
+                </span>
+                <div>
+                  <strong>{selectedPatient ? formatDiabetes(selectedPatient.tipo_diabetes) : "Vinculá pacientes para comenzar"}</strong>
+                  <span>
+                    {selectedPatient ? (
+                      <>
+                        {formatAge(selectedPatient.fecha_nacimiento)} · {selectedPatient.email ?? "Email pendiente"}
+                        {summaryState.data?.patient.telefono ? ` · ${summaryState.data.patient.telefono}` : ""}
+                      </>
+                    ) : (
+                      "Los pacientes aparecerán cuando tengan tu ID como médico de cabecera."
+                    )}
+                  </span>
+                </div>
+              </div>
+
+              {summaryState.error ? <p className="form-error">{summaryState.error}</p> : null}
+
+              <div className="clinical-metrics">
+                <MetricCard label="Glucemia" value={summaryState.loading ? "--" : metrics.latestGlucose} unit={metrics.latestGlucose !== "--" ? "mg/dL" : undefined} status={metrics.glucoseStatus} compact />
+                <MetricCard label="Promedio" value={summaryState.loading ? "--" : metrics.averageGlucose} unit={metrics.averageGlucose !== "--" ? "mg/dL" : undefined} status={rangeLabel(range)} compact />
+                <MetricCard label="Última insulina" value={summaryState.loading ? "--" : metrics.latestInsulin} unit={metrics.latestInsulin !== "--" ? "u" : undefined} status={metrics.insulinStatus} compact />
+                <MetricCard label="Registros" value={summaryState.loading ? "--" : String(records.length)} status={rangeLabel(range)} compact />
+              </div>
             </div>
-            <div className="period-tabs" aria-label="Rango de análisis">
-              <button className={range === "7d" ? "active" : ""} type="button" onClick={() => setRange("7d")}>
-                7 días
-              </button>
-              <button className={range === "1m" ? "active" : ""} type="button" onClick={() => setRange("1m")}>
-                1 mes
-              </button>
-              <button className={range === "3m" ? "active" : ""} type="button" onClick={() => setRange("3m")}>
-                3 meses
-              </button>
-            </div>
+
+            <QuickPatientList patients={patients} selectedPatient={selectedPatient} onSelect={setSelectedPatientId} />
           </div>
 
-          <div className="patient-row">
-            <span className="avatar-badge" aria-hidden="true">
-              {selectedPatient ? getInitials(`${selectedPatient.nombre} ${selectedPatient.apellido}`) : "--"}
-            </span>
-            <div>
-              <strong>{selectedPatient ? formatDiabetes(selectedPatient.tipo_diabetes) : "Vinculá pacientes para comenzar"}</strong>
-              <span>
-                {selectedPatient ? (
-                  <>
-                    {formatAge(selectedPatient.fecha_nacimiento)} · {selectedPatient.email ?? "Email pendiente"}
-                    {summaryState.data?.patient.telefono ? ` · ${summaryState.data.patient.telefono}` : ""}
-                  </>
-                ) : (
-                  "Los pacientes aparecerán cuando tengan tu ID como médico de cabecera."
-                )}
-              </span>
-            </div>
-          </div>
-
-          {summaryState.error ? <p className="form-error">{summaryState.error}</p> : null}
-
-          <div className="clinical-metrics">
-            <MetricCard label="Glucemia" value={summaryState.loading ? "--" : metrics.latestGlucose} unit={metrics.latestGlucose !== "--" ? "mg/dL" : undefined} status={metrics.glucoseStatus} compact />
-            <MetricCard label="Promedio" value={summaryState.loading ? "--" : metrics.averageGlucose} unit={metrics.averageGlucose !== "--" ? "mg/dL" : undefined} status={rangeLabel(range)} compact />
-            <MetricCard label="Última insulina" value={summaryState.loading ? "--" : metrics.latestInsulin} unit={metrics.latestInsulin !== "--" ? "u" : undefined} status={metrics.insulinStatus} compact />
-            <MetricCard label="Registros" value={summaryState.loading ? "--" : String(records.length)} status={rangeLabel(range)} compact />
-          </div>
-
-          <div className="chart-grid">
+          <div className="chart-grid doctor-chart-grid">
             {summaryState.loading ? (
               <>
                 <ChartLoading title="Glucemia" />
@@ -237,40 +244,6 @@ export function DoctorDashboardPanel({
             )}
           </div>
         </article>
-
-        <aside className="dashboard-card stacked-card">
-          <div className="section-heading">
-            <div>
-              <p className="eyebrow">Lista rápida</p>
-              <h2>Mis pacientes</h2>
-            </div>
-          </div>
-
-          <div className="patient-list">
-            {patients.length ? (
-              patients.slice(0, 4).map((patient) => (
-                <button
-                  className={`patient-list-item selectable ${patient.id_paciente === selectedPatient?.id_paciente ? "active" : ""}`}
-                  type="button"
-                  onClick={() => setSelectedPatientId(patient.id_paciente)}
-                  key={patient.id_paciente}
-                >
-                  <span className="avatar-badge small" aria-hidden="true">
-                    {getInitials(`${patient.nombre} ${patient.apellido}`)}
-                  </span>
-                  <div>
-                    <strong>
-                      {patient.nombre} {patient.apellido}
-                    </strong>
-                    <small>{patient.email ?? "Email pendiente"}</small>
-                  </div>
-                </button>
-              ))
-            ) : (
-              <p className="empty-state">Todavía no hay pacientes vinculados.</p>
-            )}
-          </div>
-        </aside>
       </section>
 
       {activeModal ? (
@@ -302,6 +275,52 @@ export function DoctorDashboardPanel({
         </div>
       ) : null}
     </div>
+  );
+}
+
+function QuickPatientList({
+  patients,
+  selectedPatient,
+  onSelect
+}: {
+  patients: DoctorPatientPreview[];
+  selectedPatient: DoctorPatientPreview | null;
+  onSelect: (patientId: number) => void;
+}) {
+  return (
+    <aside className="dashboard-card stacked-card quick-patient-card">
+      <div className="section-heading">
+        <div>
+          <p className="eyebrow">Lista rápida</p>
+          <h2>Mis pacientes</h2>
+        </div>
+      </div>
+
+      <div className="patient-list quick-patient-list">
+        {patients.length ? (
+          patients.slice(0, 4).map((patient) => (
+            <button
+              className={`patient-list-item selectable ${patient.id_paciente === selectedPatient?.id_paciente ? "active" : ""}`}
+              type="button"
+              onClick={() => onSelect(patient.id_paciente)}
+              key={patient.id_paciente}
+            >
+              <span className="avatar-badge small" aria-hidden="true">
+                {getInitials(`${patient.nombre} ${patient.apellido}`)}
+              </span>
+              <div>
+                <strong>
+                  {patient.nombre} {patient.apellido}
+                </strong>
+                <small>{patient.email ?? "Email pendiente"}</small>
+              </div>
+            </button>
+          ))
+        ) : (
+          <p className="empty-state">Todavía no hay pacientes vinculados.</p>
+        )}
+      </div>
+    </aside>
   );
 }
 
@@ -483,50 +502,87 @@ function MetricCard({
 }
 
 function GlucoseLineChart({ records, range, anchorDate }: { records: PatientRecord[]; range: RangeKey; anchorDate: string | null }) {
-  const values = records
-    .map((record) => ({ date: record.fecha_hora, value: Number(record.glucemia_mgdl) }))
-    .filter((record) => Number.isFinite(record.value));
+  const readings = records
+    .map((record) => {
+      const value = Number(record.glucemia_mgdl);
+      const date = new Date(record.fecha_hora);
+      return Number.isFinite(value) && !Number.isNaN(date.getTime()) ? { date, value } : null;
+    })
+    .filter((reading): reading is { date: Date; value: number } => Boolean(reading))
+    .toSorted((left, right) => left.date.getTime() - right.date.getTime());
 
-  const width = 320;
-  const height = 150;
-  const padding = { left: 26, right: 18, top: 16, bottom: 24 };
-  const minValue = 50;
-  const maxValue = 260;
-  const xSpan = Math.max(values.length - 1, 1);
-  const points = values.map((record, index) => {
-    const x = padding.left + (index / xSpan) * (width - padding.left - padding.right);
-    const ratio = (Math.min(Math.max(record.value, minValue), maxValue) - minValue) / (maxValue - minValue);
-    const y = height - padding.bottom - ratio * (height - padding.top - padding.bottom);
-    return { ...record, x, y };
+  const values = readings.map((reading) => reading.value);
+  const rawMin = Math.min(...values, 70);
+  const rawMax = Math.max(...values, 180);
+  const yMin = Math.max(40, Math.floor((rawMin - 14) / 10) * 10);
+  const yMax = Math.ceil((rawMax + 14) / 10) * 10;
+  const width = 920;
+  const height = 280;
+  const padding = { left: 52, right: 28, top: 26, bottom: 40 };
+  const firstTime = readings[0]?.date.getTime() ?? 0;
+  const lastTime = readings.at(-1)?.date.getTime() ?? firstTime;
+  const timeRange = Math.max(lastTime - firstTime, 1);
+  const yForValue = (value: number) =>
+    padding.top + ((yMax - value) * (height - padding.top - padding.bottom)) / (yMax - yMin || 1);
+  const points = readings.map((reading) => {
+    const x = readings.length === 1
+      ? padding.left + (width - padding.left - padding.right) / 2
+      : padding.left + ((reading.date.getTime() - firstTime) / timeRange) * (width - padding.left - padding.right);
+
+    return {
+      x,
+      y: yForValue(reading.value),
+      value: reading.value,
+      date: reading.date,
+      tone: getGlucoseTone(reading.value)
+    };
   });
-  const path = points.map((point, index) => `${index === 0 ? "M" : "L"}${point.x.toFixed(1)} ${point.y.toFixed(1)}`).join(" ");
+  const linePath = buildSmoothPath(points);
+  const areaPath = buildAreaPath(points, height - padding.bottom);
+  const highLineY = yForValue(180);
+  const lowLineY = yForValue(70);
+  const rangeTop = Math.min(highLineY, lowLineY);
+  const rangeHeight = Math.abs(lowLineY - highLineY);
 
   return (
-    <div className="chart-card">
+    <div className="chart-card doctor-glucose-chart-card">
       <div className="chart-heading-row">
         <h3>Glucemia</h3>
         <span>{anchorDate ? `${rangeLabel(range)} hasta ${formatShortDate(anchorDate)}` : rangeLabel(range)}</span>
       </div>
       {points.length ? (
-        <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Glucemia del paciente">
-          <path className="chart-grid-line" d="M26 34H302M26 76H302M26 118H302" />
-          <path className="glucose-reference low-line" d="M26 110H302" />
-          <path className="glucose-reference high-line" d="M26 52H302" />
-          {points.length > 1 ? <path className="chart-line smooth-line" d={path} /> : null}
-          <g className="chart-dots">
-            {points.map((point) => (
-              <circle cx={point.x} cy={point.y} r="4" key={`${point.date}-${point.value}`} />
-            ))}
-          </g>
-          <g className="chart-axis-labels">
-            <text x="26" y="144">
-              {formatShortDate(points[0]?.date)}
-            </text>
-            <text x="252" y="144">
-              {formatShortDate(points[points.length - 1]?.date)}
-            </text>
-          </g>
-        </svg>
+        <>
+          <svg className="doctor-glucose-chart" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Glucemia del paciente seleccionado">
+            <defs>
+              <linearGradient id="doctorGlucoseArea" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stopColor="#1575ba" stopOpacity="0.22" />
+                <stop offset="100%" stopColor="#1575ba" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            <rect className="doctor-glucose-target" x={padding.left} y={rangeTop} width={width - padding.left - padding.right} height={rangeHeight} rx="10" />
+            <path className="chart-grid-line" d={`M${padding.left} ${padding.top}H${width - padding.right}M${padding.left} ${highLineY}H${width - padding.right}M${padding.left} ${lowLineY}H${width - padding.right}M${padding.left} ${height - padding.bottom}H${width - padding.right}`} />
+            {areaPath ? <path className="doctor-glucose-area" d={areaPath} /> : null}
+            {linePath ? <path className="doctor-glucose-line smooth-line" d={linePath} /> : null}
+            <g className="chart-axis-labels">
+              <text x="8" y={padding.top + 4}>{yMax}</text>
+              <text x="8" y={highLineY + 4}>180</text>
+              <text x="8" y={lowLineY + 4}>70</text>
+              <text x="8" y={height - padding.bottom + 4}>{yMin}</text>
+            </g>
+            <g className="chart-dots">
+              {points.map((point, index) => (
+                <circle className={`chart-dot-${point.tone}`} cx={point.x} cy={point.y} r="5" key={`${point.date.toISOString()}-${point.value}-${index}`}>
+                  <title>{`${formatDateTime(point.date.toISOString())}: ${point.value} mg/dL`}</title>
+                </circle>
+              ))}
+            </g>
+          </svg>
+          <div className="doctor-glucose-footer" aria-hidden="true">
+            <span>{formatShortDate(points[0]?.date.toISOString())}</span>
+            <span>Rango objetivo 70-180 mg/dL</span>
+            <span>{formatShortDate(points.at(-1)?.date.toISOString())}</span>
+          </div>
+        </>
       ) : (
         <p className="chart-empty">Sin registros de glucemia en este rango.</p>
       )}
@@ -680,4 +736,31 @@ function formatDiabetes(value: string | null | undefined) {
   };
 
   return value ? labels[value] ?? value : "No especificado";
+}
+
+function getGlucoseTone(value: number) {
+  if (value < 70) return "low";
+  if (value > 180) return "high";
+  return "normal";
+}
+
+function buildSmoothPath(points: { x: number; y: number }[]) {
+  if (!points.length) return "";
+  if (points.length === 1) return `M${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)}`;
+
+  return points.reduce((path, point, index) => {
+    if (index === 0) return `M${point.x.toFixed(1)} ${point.y.toFixed(1)}`;
+
+    const previous = points[index - 1];
+    const controlX = (previous.x + point.x) / 2;
+    return `${path} C${controlX.toFixed(1)} ${previous.y.toFixed(1)}, ${controlX.toFixed(1)} ${point.y.toFixed(1)}, ${point.x.toFixed(1)} ${point.y.toFixed(1)}`;
+  }, "");
+}
+
+function buildAreaPath(points: { x: number; y: number }[], baseline: number) {
+  if (points.length < 2) return "";
+  const line = buildSmoothPath(points);
+  const first = points[0];
+  const last = points.at(-1)!;
+  return `${line} L${last.x.toFixed(1)} ${baseline.toFixed(1)} L${first.x.toFixed(1)} ${baseline.toFixed(1)} Z`;
 }

@@ -43,12 +43,15 @@ export function SignsExplorer({ signs }: { signs: SignExplorerRow[] }) {
 
   const filteredSigns = useMemo(() => {
     const cleanQuery = query.trim().toLowerCase();
-    const anchor = getLatestDate(signs);
+    const patientSigns = signs.filter((sign) => {
+      const patientName = formatPatientName(sign.pacientes);
+      return patient === "todos" || patientName === patient;
+    });
+    const anchor = getLatestDate(patientSigns);
     const since = getSinceDate(anchor, range);
 
-    return signs.filter((sign) => {
+    return patientSigns.filter((sign) => {
       const patientName = formatPatientName(sign.pacientes);
-      const matchesPatient = patient === "todos" || patientName === patient;
       const date = new Date(sign.fecha_hora);
       const matchesRange = !since || (!Number.isNaN(date.getTime()) && date >= since && date <= anchor);
       const haystack = [
@@ -64,7 +67,7 @@ export function SignsExplorer({ signs }: { signs: SignExplorerRow[] }) {
         .join(" ")
         .toLowerCase();
 
-      return matchesPatient && matchesRange && (!cleanQuery || haystack.includes(cleanQuery));
+      return matchesRange && (!cleanQuery || haystack.includes(cleanQuery));
     });
   }, [signs, patient, query, range]);
 
@@ -91,7 +94,7 @@ export function SignsExplorer({ signs }: { signs: SignExplorerRow[] }) {
     <section className="dashboard-card signs-explorer">
       <div className="section-heading">
         <div>
-          <p className="eyebrow">Registrar signos</p>
+          <p className="eyebrow">Registros clínicos</p>
           <h2>Registros clínicos</h2>
         </div>
         <div className="signs-summary">
@@ -155,7 +158,7 @@ export function SignsExplorer({ signs }: { signs: SignExplorerRow[] }) {
               <MetricMini label="Registros" value={String(filteredSigns.length)} unit={rangeLabel(range)} />
             </div>
 
-            <SignTrend signs={filteredSigns} />
+            <SignTrend signs={filteredSigns} range={range} />
             <SignDetail sign={selectedSign} />
           </aside>
         </div>
@@ -205,39 +208,90 @@ function SignDetail({ sign }: { sign: SignExplorerRow | null }) {
   );
 }
 
-function SignTrend({ signs }: { signs: SignExplorerRow[] }) {
-  const values = signs
-    .slice()
-    .reverse()
-    .map((sign) => Number(sign.glucemia_mgdl))
-    .filter(Number.isFinite)
-    .slice(-18);
-  const max = Math.max(...values, 220);
-  const min = Math.min(...values, 60);
-  const range = Math.max(max - min, 1);
-  const points = values.map((value, index) => {
-    const x = 18 + (index / Math.max(values.length - 1, 1)) * 284;
-    const y = 120 - ((value - min) / range) * 92;
-    return { x, y, value };
+function SignTrend({ signs, range }: { signs: SignExplorerRow[]; range: RangeFilter }) {
+  const readings = signs
+    .map((sign) => {
+      const value = Number(sign.glucemia_mgdl);
+      const date = new Date(sign.fecha_hora);
+      return Number.isFinite(value) && !Number.isNaN(date.getTime()) ? { value, date } : null;
+    })
+    .filter((reading): reading is { value: number; date: Date } => Boolean(reading))
+    .toSorted((left, right) => left.date.getTime() - right.date.getTime());
+  const trendReadings = buildTrendReadings(readings, range);
+  const values = trendReadings.map((reading) => reading.value);
+  const rawMin = Math.min(...values, 70);
+  const rawMax = Math.max(...values, 180);
+  const yMin = Math.max(40, Math.floor((rawMin - 14) / 10) * 10);
+  const yMax = Math.ceil((rawMax + 14) / 10) * 10;
+  const width = 420;
+  const height = 220;
+  const padding = { left: 42, right: 18, top: 22, bottom: 34 };
+  const firstTime = trendReadings[0]?.date.getTime() ?? 0;
+  const lastTime = trendReadings.at(-1)?.date.getTime() ?? firstTime;
+  const timeRange = Math.max(lastTime - firstTime, 1);
+  const yForValue = (value: number) =>
+    padding.top + ((yMax - value) * (height - padding.top - padding.bottom)) / (yMax - yMin || 1);
+  const points = trendReadings.map((reading) => {
+    const x = trendReadings.length === 1
+      ? padding.left + (width - padding.left - padding.right) / 2
+      : padding.left + ((reading.date.getTime() - firstTime) / timeRange) * (width - padding.left - padding.right);
+    return {
+      x,
+      y: yForValue(reading.value),
+      value: reading.value,
+      date: reading.date,
+      tone: getGlucoseTone(reading.value)
+    };
   });
-  const path = points.map((point, index) => `${index === 0 ? "M" : "L"}${point.x.toFixed(1)} ${point.y.toFixed(1)}`).join(" ");
+  const linePath = buildSmoothPath(points);
+  const areaPath = buildTrendAreaPath(points, height - padding.bottom);
+  const highLineY = yForValue(180);
+  const lowLineY = yForValue(70);
+  const rangeTop = Math.min(highLineY, lowLineY);
+  const rangeHeight = Math.abs(lowLineY - highLineY);
+  const firstLabel = trendReadings[0] ? formatShortDate(trendReadings[0].date.toISOString()) : "";
+  const lastLabel = trendReadings.at(-1) ? formatShortDate(trendReadings.at(-1)!.date.toISOString()) : "";
+  const pointLabel = getTrendPointLabel(range, trendReadings.length);
 
   return (
     <div className="sign-trend">
       <div className="chart-heading-row">
         <h3>Tendencia de glucemia</h3>
-        <span>{values.length} puntos</span>
+        <span>{readings.length ? pointLabel : "Sin datos"}</span>
       </div>
       {points.length ? (
-        <svg viewBox="0 0 320 140" role="img" aria-label="Tendencia de glucemia">
-          <path className="chart-grid-line" d="M18 30H302M18 70H302M18 110H302" />
-          {points.length > 1 ? <path className="chart-line smooth-line" d={path} /> : null}
-          <g className="chart-dots">
+        <div className="sign-trend-chart">
+          <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Tendencia de glucemia">
+            <defs>
+              <linearGradient id="signTrendArea" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stopColor="#1575ba" stopOpacity="0.22" />
+                <stop offset="100%" stopColor="#1575ba" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            <rect className="sign-trend-target" x={padding.left} y={rangeTop} width={width - padding.left - padding.right} height={rangeHeight} rx="10" />
+            <path className="chart-grid-line" d={`M${padding.left} ${padding.top}H${width - padding.right}M${padding.left} ${highLineY}H${width - padding.right}M${padding.left} ${lowLineY}H${width - padding.right}M${padding.left} ${height - padding.bottom}H${width - padding.right}`} />
+            {areaPath ? <path className="sign-trend-area" d={areaPath} /> : null}
+            {linePath ? <path className="sign-trend-line smooth-line" d={linePath} /> : null}
+            <g className="sign-trend-labels">
+              <text x="8" y={padding.top + 4}>{yMax}</text>
+              <text x="8" y={highLineY + 4}>180</text>
+              <text x="8" y={lowLineY + 4}>70</text>
+              <text x="8" y={height - padding.bottom + 4}>{yMin}</text>
+            </g>
+            <g className="chart-dots">
             {points.map((point, index) => (
-              <circle cx={point.x} cy={point.y} r="4" key={`${point.value}-${index}`} />
+              <circle className={`chart-dot-${point.tone}`} cx={point.x} cy={point.y} r="5" key={`${point.value}-${point.date.toISOString()}-${index}`}>
+                <title>{`${formatDateTime(point.date.toISOString())}: ${point.value} mg/dL`}</title>
+              </circle>
             ))}
-          </g>
-        </svg>
+            </g>
+          </svg>
+          <div className="sign-trend-footer" aria-hidden="true">
+            <span>{firstLabel}</span>
+            <span>Rango objetivo 70-180 mg/dL</span>
+            <span>{lastLabel}</span>
+          </div>
+        </div>
       ) : (
         <p className="chart-empty">Sin datos de glucemia para graficar.</p>
       )}
@@ -294,4 +348,95 @@ function rangeLabel(range: RangeFilter) {
   };
 
   return labels[range];
+}
+
+type TrendReading = {
+  date: Date;
+  value: number;
+};
+
+function buildTrendReadings(readings: TrendReading[], range: RangeFilter) {
+  if (range === "7d") return readings;
+  if (range === "todos") return aggregateByMonth(readings);
+  return aggregateByDay(readings);
+}
+
+function aggregateByDay(readings: TrendReading[]) {
+  const groups = groupReadings(readings, (reading) => getLocalDateKey(reading.date));
+
+  return Array.from(groups.entries()).map(([key, values]) => {
+    const [year, month, day] = key.split("-").map(Number);
+    return {
+      date: new Date(year, month - 1, day, 12),
+      value: Math.round(values.reduce((sum, value) => sum + value, 0) / values.length)
+    };
+  });
+}
+
+function aggregateByMonth(readings: TrendReading[]) {
+  const groups = groupReadings(readings, (reading) => getLocalMonthKey(reading.date));
+
+  return Array.from(groups.entries()).map(([key, values]) => {
+    const [year, month] = key.split("-").map(Number);
+    return {
+      date: new Date(year, month - 1, 15, 12),
+      value: Math.round(values.reduce((sum, value) => sum + value, 0) / values.length)
+    };
+  });
+}
+
+function groupReadings(readings: TrendReading[], getKey: (reading: TrendReading) => string) {
+  return readings.reduce((groups, reading) => {
+    const key = getKey(reading);
+    const values = groups.get(key) ?? [];
+    values.push(reading.value);
+    groups.set(key, values);
+    return groups;
+  }, new Map<string, number[]>());
+}
+
+function getTrendPointLabel(range: RangeFilter, pointCount: number) {
+  if (range === "7d") return `${pointCount} lecturas`;
+  if (range === "todos") return `${pointCount} ${pointCount === 1 ? "promedio mensual" : "promedios mensuales"}`;
+  return `${pointCount} ${pointCount === 1 ? "promedio diario" : "promedios diarios"}`;
+}
+
+function getLocalDateKey(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function getLocalMonthKey(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  return `${year}-${month}`;
+}
+
+function buildSmoothPath(points: { x: number; y: number }[]) {
+  if (!points.length) return "";
+  if (points.length === 1) return `M${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)}`;
+
+  return points.reduce((path, point, index) => {
+    if (index === 0) return `M${point.x.toFixed(1)} ${point.y.toFixed(1)}`;
+
+    const previous = points[index - 1];
+    const controlX = (previous.x + point.x) / 2;
+    return `${path} C${controlX.toFixed(1)} ${previous.y.toFixed(1)}, ${controlX.toFixed(1)} ${point.y.toFixed(1)}, ${point.x.toFixed(1)} ${point.y.toFixed(1)}`;
+  }, "");
+}
+
+function buildTrendAreaPath(points: { x: number; y: number }[], baseline: number) {
+  if (points.length < 2) return "";
+  const line = buildSmoothPath(points);
+  const first = points[0];
+  const last = points.at(-1)!;
+  return `${line} L${last.x.toFixed(1)} ${baseline.toFixed(1)} L${first.x.toFixed(1)} ${baseline.toFixed(1)} Z`;
+}
+
+function formatShortDate(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "--";
+  return date.toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit" });
 }

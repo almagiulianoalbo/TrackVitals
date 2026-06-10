@@ -1712,6 +1712,40 @@ body:has(.auth-overlay:target) {
     rgba(255, 255, 255, 0.96);
 }
 
+.doctor-overview-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.doctor-patient-top {
+  display: grid;
+  gap: 18px;
+  align-items: start;
+}
+
+.doctor-patient-summary {
+  display: grid;
+  gap: 22px;
+  min-width: 0;
+}
+
+.quick-patient-card {
+  min-width: 0;
+  padding: 14px;
+}
+
+.quick-patient-card .section-heading {
+  gap: 6px;
+}
+
+.quick-patient-card .section-heading h2 {
+  font-size: clamp(1.2rem, 3vw, 1.58rem);
+}
+
+.quick-patient-list {
+  gap: 6px;
+  margin-top: 8px;
+}
+
 .patient-focus-flat {
   border: 0;
   border-radius: 0;
@@ -1881,6 +1915,68 @@ body:has(.auth-overlay:target) {
   display: block;
   width: 100%;
   height: 170px;
+}
+
+.doctor-glucose-chart-card {
+  border: 1px solid rgba(215, 230, 236, 0.8);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 16% 8%, rgba(20, 184, 166, 0.12), transparent 34%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(247, 251, 252, 0.88));
+  box-shadow: 0 18px 42px rgba(13, 27, 42, 0.06);
+  padding: 16px;
+}
+
+.doctor-glucose-chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  min-height: 250px;
+  overflow: visible;
+}
+
+.doctor-glucose-target {
+  fill: rgba(20, 184, 166, 0.08);
+  stroke: rgba(20, 184, 166, 0.16);
+}
+
+.doctor-glucose-area {
+  fill: url("#doctorGlucoseArea");
+}
+
+.doctor-glucose-line {
+  fill: none;
+  stroke: var(--blue-600);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 4.5;
+}
+
+.doctor-glucose-footer {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 8px;
+  align-items: center;
+  margin-top: -4px;
+  color: var(--ink-500);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.doctor-glucose-footer span:nth-child(2) {
+  justify-self: center;
+  border-radius: 999px;
+  background: rgba(20, 184, 166, 0.1);
+  color: var(--blue-700);
+  padding: 5px 9px;
+}
+
+.doctor-glucose-footer span:last-child {
+  justify-self: end;
+}
+
+.doctor-chart-grid {
+  align-items: stretch;
 }
 
 .summary-period {
@@ -4838,15 +4934,69 @@ body:has(.auth-overlay:target) {
 .sign-trend,
 .selected-sign-card {
   border: 1px solid rgba(215, 230, 236, 0.92);
-  border-radius: 8px;
-  background: var(--surface);
-  padding: 16px;
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 12% 10%, rgba(20, 184, 166, 0.12), transparent 36%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(247, 251, 252, 0.88));
+  box-shadow: 0 18px 42px rgba(13, 27, 42, 0.06);
+  padding: 18px;
 }
 
 .sign-trend svg {
   display: block;
   width: 100%;
-  height: 160px;
+  height: auto;
+  overflow: visible;
+}
+
+.sign-trend-chart {
+  display: grid;
+  gap: 8px;
+}
+
+.sign-trend-target {
+  fill: rgba(20, 184, 166, 0.08);
+  stroke: rgba(20, 184, 166, 0.16);
+}
+
+.sign-trend-area {
+  fill: url("#signTrendArea");
+}
+
+.sign-trend-line {
+  fill: none;
+  stroke: var(--blue-600);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 4.5;
+}
+
+.sign-trend-labels text {
+  fill: rgba(93, 108, 126, 0.88);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.sign-trend-footer {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 8px;
+  align-items: center;
+  color: var(--ink-500);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.sign-trend-footer span:nth-child(2) {
+  justify-self: center;
+  border-radius: 999px;
+  background: rgba(20, 184, 166, 0.1);
+  color: var(--blue-700);
+  padding: 5px 9px;
+}
+
+.sign-trend-footer span:last-child {
+  justify-self: end;
 }
 
 .selected-sign-card {
@@ -5531,6 +5681,25 @@ button.patient-list-item:last-child {
   border-bottom: 0;
 }
 
+.quick-patient-list .patient-list-item {
+  gap: 9px;
+}
+
+.quick-patient-list .avatar-badge.small {
+  width: 34px;
+  height: 34px;
+  font-size: 0.75rem;
+}
+
+.quick-patient-list button.patient-list-item {
+  padding-bottom: 8px;
+}
+
+.quick-patient-list .patient-list-item.selectable:hover,
+.quick-patient-list .patient-list-item.selectable.active {
+  padding: 7px 8px;
+}
+
 .patient-list-item strong,
 .patient-list-item small {
   display: block;
@@ -5656,6 +5825,14 @@ button.patient-list-item:last-child {
 
   .chart-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .doctor-patient-top {
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 0.42fr);
+  }
+
+  .doctor-chart-grid {
+    grid-template-columns: minmax(0, 1.72fr) minmax(250px, 0.7fr);
   }
 
   .weekly-metric-panel {
@@ -5878,6 +6055,10 @@ button.patient-list-item:last-child {
 
   .clinical-grid {
     grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.75fr);
+  }
+
+  .doctor-overview-grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .patient-main-grid {

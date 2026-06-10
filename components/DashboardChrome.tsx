@@ -82,7 +82,7 @@ function DashboardSidebar({
           { label: "Panel principal", href: "/dashboard", key: "panel" },
           { label: "Mis pacientes", href: "/dashboard/mis-pacientes", key: "pacientes" },
           { label: "Prescripciones", href: "/dashboard/prescripciones", key: "prescripciones" },
-          { label: "Registrar signos", href: "/dashboard/registrar-signos", key: "registrar-signos" },
+          { label: "Registros clínicos", href: "/dashboard/registrar-signos", key: "registrar-signos" },
           { label: "Turnos", href: "/dashboard/turnos", key: "turnos" },
           { label: "Alertas", href: "/dashboard/alertas", key: "alertas" },
           { label: "Mensajes", href: "/dashboard/mensajes", key: "mensajes" },
