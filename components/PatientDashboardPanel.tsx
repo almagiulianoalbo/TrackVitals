@@ -99,7 +99,7 @@ export function PatientDashboardPanel({
 
           <div className="weekly-summary-layout">
             <div className="weekly-chart-stack">
-              <WeeklyGlucoseChart summary={weeklySummary} />
+              <WeeklyInsightEntryCard summary={weeklySummary} />
               <RangeDistributionChart records={weeklySummary.records} compact />
             </div>
             <WeeklyMetricPanel summary={weeklySummary} />
@@ -219,6 +219,48 @@ function getNowInputValue(daysToAdd = 0) {
   date.setSeconds(0, 0);
   const offsetDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
   return offsetDate.toISOString().slice(0, 16);
+}
+
+function WeeklyInsightEntryCard({ summary }: { summary: WeeklySummary }) {
+  const activeDays = summary.daily.filter((day) => day.count > 0).length;
+  const maxAverage = Math.max(...summary.daily.map((day) => day.avg), 1);
+
+  return (
+    <article className="weekly-insight-entry-card">
+      <div className="weekly-insight-entry-copy">
+        <p className="eyebrow">Insight semanal</p>
+        <h3>Una lectura inteligente de tu semana.</h3>
+        <p>Detectá patrones, momentos sensibles y puntos para conversar con tu médico a partir de tus registros reales.</p>
+        <div className="weekly-insight-entry-actions">
+          <Link className="primary-button weekly-insight-button" href="/dashboard/insight-semanal">
+            Ver insight semanal
+          </Link>
+          <span>{activeDays}/7 días con datos</span>
+        </div>
+      </div>
+
+      <div className="weekly-insight-cover" aria-hidden="true">
+        <span className="weekly-insight-orbit weekly-insight-orbit-one" />
+        <span className="weekly-insight-orbit weekly-insight-orbit-two" />
+        <div className="weekly-insight-signal">
+          {summary.daily.map((day, index) => {
+            const height = day.count ? Math.max(18, (day.avg / maxAverage) * 100) : 12;
+            return (
+              <i
+                className={day.avg > 180 ? "high" : day.avg && day.avg < 70 ? "low" : "normal"}
+                style={{ height: `${height}%`, animationDelay: `${index * 70}ms` }}
+                key={day.key}
+              />
+            );
+          })}
+        </div>
+        <div className="weekly-insight-cover-metric">
+          <strong>{summary.timeInRange ?? "--"}{summary.timeInRange !== null ? "%" : ""}</strong>
+          <span>tiempo en rango</span>
+        </div>
+      </div>
+    </article>
+  );
 }
 
 function WeeklyGlucoseChart({ summary }: { summary: WeeklySummary }) {
