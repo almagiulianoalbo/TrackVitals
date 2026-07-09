@@ -25,16 +25,21 @@ export default async function WeeklyInsightPage() {
     );
   } catch (error) {
     console.error(error);
+    const errorMessage = error instanceof Error ? error.message : "No se pudo conectar con MongoDB.";
+    const missingMongoUri = errorMessage.includes("MONGODB_URI");
 
     return (
       <DashboardShell user={user} activeItem="panel" subtitle="Lectura inteligente de tus registros clínicos.">
         <section className="weekly-insight-page">
           <article className="weekly-insight-setup">
             <p className="eyebrow">Insight semanal</p>
-            <h2>No se pudo cargar MongoDB</h2>
+            <h2>{missingMongoUri ? "Falta configurar MongoDB" : "No se pudo conectar a MongoDB"}</h2>
             <p>
-              La funcionalidad ya está preparada, pero falta configurar `MONGODB_URI` en el entorno para guardar y leer la colección `weekly_insights`.
+              {missingMongoUri
+                ? "La funcionalidad ya está preparada, pero falta agregar `MONGODB_URI` en el archivo `.env` para guardar y leer la colección `weekly_insights`."
+                : "Revisá que `MONGODB_URI` tenga usuario, contraseña y cluster reales, y que MongoDB Atlas permita la conexión desde tu red."}
             </p>
+            {!missingMongoUri ? <p className="field-help field-help-error">{errorMessage}</p> : null}
             <Link className="inline-action" href="/dashboard">
               Volver al panel
             </Link>
