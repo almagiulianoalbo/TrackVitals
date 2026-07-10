@@ -1,7 +1,7 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 export type MealRow = {
   id_comida: number;
@@ -47,6 +47,7 @@ export function FoodPlanBoard({
   const totals = useMemo(() => getTotals(meals), [meals]);
   const completedCount = meals.filter((meal) => completedMealIds.has(meal.id_comida)).length;
   const completionPercent = meals.length ? Math.round((completedCount / meals.length) * 100) : 0;
+  const animatedCompletionPercent = useAnimatedProgress(completionPercent);
   const calorieGoal = Number(selected?.objetivo_calorico) || 0;
   const caloriePercent = calorieGoal ? Math.min(100, Math.round((totals.calories / calorieGoal) * 100)) : 0;
 
@@ -157,19 +158,19 @@ export function FoodPlanBoard({
           <span className={`food-plan-status ${normalizeStatus(selected?.estado)}`}>{formatStatus(selected?.estado)}</span>
           <h3>Lectura rápida</h3>
           <div className="macro-rings">
-            <div className="macro-ring calories" style={{ "--value": `${completionPercent}%` } as CSSProperties}>
+            <div className="macro-ring calories" style={{ "--value": `${animatedCompletionPercent}%` } as CSSProperties}>
               <strong>{totals.calories}</strong>
               <span>kcal</span>
             </div>
-            <div className="macro-ring carbs" style={{ "--value": `${completionPercent}%` } as CSSProperties}>
+            <div className="macro-ring carbs" style={{ "--value": `${animatedCompletionPercent}%` } as CSSProperties}>
               <strong>{totals.carbs}</strong>
               <span>g CH</span>
             </div>
-            <div className="macro-ring protein" style={{ "--value": `${completionPercent}%` } as CSSProperties}>
+            <div className="macro-ring protein" style={{ "--value": `${animatedCompletionPercent}%` } as CSSProperties}>
               <strong>{totals.protein}</strong>
               <span>g prot.</span>
             </div>
-            <div className="macro-ring fats" style={{ "--value": `${completionPercent}%` } as CSSProperties}>
+            <div className="macro-ring fats" style={{ "--value": `${animatedCompletionPercent}%` } as CSSProperties}>
               <strong>{totals.fats}</strong>
               <span>g grasa</span>
             </div>
@@ -184,6 +185,41 @@ export function FoodPlanBoard({
       </div>
     </section>
   );
+}
+
+function useAnimatedProgress(target: number) {
+  const [value, setValue] = useState(target);
+  const previousValue = useRef(target);
+
+  useEffect(() => {
+    const startValue = previousValue.current;
+    const endValue = target;
+    previousValue.current = target;
+
+    if (typeof window === "undefined" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setValue(endValue);
+      return;
+    }
+
+    let frame = 0;
+    const startedAt = performance.now();
+    const duration = 720;
+
+    const animate = (time: number) => {
+      const progress = Math.min(1, (time - startedAt) / duration);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setValue(Math.round(startValue + (endValue - startValue) * eased));
+
+      if (progress < 1) {
+        frame = requestAnimationFrame(animate);
+      }
+    };
+
+    frame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame);
+  }, [target]);
+
+  return value;
 }
 
 function Info({ label, value }: { label: string; value: string }) {

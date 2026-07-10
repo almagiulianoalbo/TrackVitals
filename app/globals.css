@@ -19,6 +19,19 @@
   --soft-shadow: 0 18px 44px rgba(13, 27, 42, 0.07);
 }
 
+:root[data-theme="dark"] {
+  --blue-700: #e6f7f3;
+  --blue-100: rgba(20, 184, 166, 0.14);
+  --ink-900: #f8fbfc;
+  --ink-700: #c9d5df;
+  --ink-500: #91a3b4;
+  --line: rgba(230, 247, 243, 0.14);
+  --surface: #111f2f;
+  --surface-soft: #16283a;
+  --shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
+  --soft-shadow: 0 18px 44px rgba(0, 0, 0, 0.24);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -29,6 +42,8 @@ html {
 }
 
 body {
+  position: relative;
+  isolation: isolate;
   min-height: 100vh;
   margin: 0;
   background:
@@ -38,6 +53,47 @@ body {
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-weight: 400;
   letter-spacing: 0;
+  transition:
+    background-color 520ms ease,
+    color 520ms ease;
+}
+
+body::before {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(20, 184, 166, 0.14), transparent 30%),
+    radial-gradient(circle at 88% 22%, rgba(111, 168, 220, 0.1), transparent 28%),
+    linear-gradient(135deg, #08111d, #0d1b2a 52%, #0f2734);
+  content: "";
+  opacity: 0;
+  transition: opacity 560ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.auth-page,
+.dashboard-shell {
+  position: relative;
+  z-index: 1;
+}
+
+:root[data-theme="dark"] body {
+  background:
+    linear-gradient(135deg, rgba(230, 247, 243, 0.96), rgba(242, 244, 247, 0.82) 48%, rgba(255, 255, 255, 0.96)),
+    #f8fbfc;
+}
+
+:root[data-theme="dark"] body::before {
+  opacity: 1;
+}
+
+:root.theme-transition *,
+:root.theme-transition *::before,
+:root.theme-transition *::after {
+  transition-duration: 520ms;
+  transition-property: background, background-color, border-color, box-shadow, color, fill, opacity, stroke, transform;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 strong,
@@ -63,8 +119,24 @@ a:hover {
 }
 
 .auth-page {
+  --blue-700: #0d1b2a;
+  --blue-600: #14b8a6;
+  --blue-100: #e6f7f3;
+  --green-600: #14b8a6;
+  --green-100: #e6f7f3;
+  --teal-600: #14b8a6;
+  --red-500: #d83d4c;
+  --ink-900: #0d1b2a;
+  --ink-700: #334155;
+  --ink-500: #728092;
+  --line: #dfe7ed;
+  --surface: #ffffff;
+  --surface-soft: #f2f4f7;
+  --shadow: 0 24px 70px rgba(13, 27, 42, 0.08);
+  --soft-shadow: 0 18px 44px rgba(13, 27, 42, 0.07);
   min-height: 100vh;
   background: var(--surface);
+  color: var(--ink-900);
 }
 
 .brand-panel {
@@ -1223,6 +1295,27 @@ body:has(.auth-overlay:target) {
   box-shadow: var(--soft-shadow);
 }
 
+:root[data-theme="dark"] .dashboard-sidebar,
+:root[data-theme="dark"] .dashboard-topbar,
+:root[data-theme="dark"] .dashboard-card,
+:root[data-theme="dark"] .metric-card,
+:root[data-theme="dark"] .quick-action,
+:root[data-theme="dark"] .action-modal,
+:root[data-theme="dark"] .insight-card,
+:root[data-theme="dark"] .patients-directory-hero,
+:root[data-theme="dark"] .patients-compact-list,
+:root[data-theme="dark"] .patient-detail-panel,
+:root[data-theme="dark"] .appointments-hero,
+:root[data-theme="dark"] .appointment-detail,
+:root[data-theme="dark"] .medication-detail-panel,
+:root[data-theme="dark"] .food-plan-detail,
+:root[data-theme="dark"] .conversation-panel,
+:root[data-theme="dark"] .messages-inbox {
+  border-color: rgba(230, 247, 243, 0.12);
+  background: rgba(17, 31, 47, 0.88);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.26);
+}
+
 .dashboard-sidebar {
   display: grid;
   gap: 18px;
@@ -1420,6 +1513,201 @@ body:has(.auth-overlay:target) {
   gap: 16px;
   align-items: center;
   padding: 18px;
+}
+
+.topbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.theme-toggle {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(20, 184, 166, 0.12), transparent 32%),
+    var(--surface);
+  color: var(--ink-900);
+  cursor: pointer;
+  font-family: Manrope, Inter, ui-sans-serif, system-ui, sans-serif;
+  font-weight: 700;
+  padding: 0;
+  box-shadow: 0 12px 28px rgba(13, 27, 42, 0.06);
+  overflow: hidden;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    transform 180ms ease;
+}
+
+.theme-toggle:hover {
+  border-color: rgba(20, 184, 166, 0.45);
+  transform: translateY(-1px);
+}
+
+.theme-toggle:focus-visible {
+  outline: 3px solid rgba(20, 184, 166, 0.25);
+  outline-offset: 3px;
+}
+
+.theme-toggle::before {
+  position: absolute;
+  inset: 8px;
+  border-radius: 50%;
+  background: rgba(20, 184, 166, 0.1);
+  content: "";
+  transition:
+    opacity 240ms ease,
+    transform 240ms ease;
+}
+
+.theme-toggle-icon {
+  position: absolute;
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  color: currentColor;
+  transition:
+    opacity 260ms ease,
+    transform 260ms ease;
+}
+
+.theme-toggle-icon svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.theme-toggle-moon {
+  opacity: 1;
+  transform: translateY(0) rotate(0deg);
+}
+
+.theme-toggle-sun {
+  opacity: 0;
+  transform: translateY(16px) rotate(-24deg);
+}
+
+.theme-toggle[aria-pressed="true"] .theme-toggle-moon {
+  opacity: 0;
+  transform: translateY(-16px) rotate(24deg);
+}
+
+.theme-toggle[aria-pressed="true"] .theme-toggle-sun {
+  opacity: 1;
+  transform: translateY(0) rotate(0deg);
+}
+
+:root[data-theme="dark"] .theme-toggle,
+:root[data-theme="dark"] .secondary-button {
+  border-color: rgba(230, 247, 243, 0.16);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--ink-900);
+}
+
+:root[data-theme="dark"] .field input,
+:root[data-theme="dark"] .field select,
+:root[data-theme="dark"] .field textarea,
+:root[data-theme="dark"] .directory-search input,
+:root[data-theme="dark"] .message-composer textarea,
+:root[data-theme="dark"] .message-composer select {
+  border-color: rgba(230, 247, 243, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--ink-900);
+}
+
+:root[data-theme="dark"] .patient-focus {
+  background:
+    radial-gradient(circle at 10% 8%, rgba(20, 184, 166, 0.16), transparent 34%),
+    linear-gradient(135deg, rgba(17, 31, 47, 0.94), rgba(10, 27, 42, 0.9));
+}
+
+:root[data-theme="dark"] .patient-focus-flat {
+  background: transparent;
+}
+
+:root[data-theme="dark"] .weekly-chart-card,
+:root[data-theme="dark"] .weekly-metric-panel,
+:root[data-theme="dark"] .weekly-range-card,
+:root[data-theme="dark"] .doctor-glucose-chart-card,
+:root[data-theme="dark"] .insight-panel,
+:root[data-theme="dark"] .insight-metric-card,
+:root[data-theme="dark"] .weekly-insight-setup,
+:root[data-theme="dark"] .medication-dose-card,
+:root[data-theme="dark"] .meal-card,
+:root[data-theme="dark"] .prescription-row,
+:root[data-theme="dark"] .alert-row,
+:root[data-theme="dark"] .appointment-calendar-day,
+:root[data-theme="dark"] .patient-record-card,
+:root[data-theme="dark"] .calendar-day {
+  border-color: rgba(230, 247, 243, 0.12);
+  background:
+    radial-gradient(circle at 12% 0%, rgba(20, 184, 166, 0.1), transparent 34%),
+    rgba(17, 31, 47, 0.76);
+}
+
+:root[data-theme="dark"] .weekly-chart-metrics div,
+:root[data-theme="dark"] .range-track,
+:root[data-theme="dark"] .status-filter,
+:root[data-theme="dark"] .period-tabs button,
+:root[data-theme="dark"] .period-tabs a,
+:root[data-theme="dark"] .inline-action,
+:root[data-theme="dark"] .message-thread,
+:root[data-theme="dark"] .patient-list-item,
+:root[data-theme="dark"] .patient-detail-feature,
+:root[data-theme="dark"] .appointment-day-list button,
+:root[data-theme="dark"] .food-plan-tabs button,
+:root[data-theme="dark"] .medication-filters button {
+  border-color: rgba(230, 247, 243, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--ink-700);
+}
+
+:root[data-theme="dark"] .period-tabs button.active,
+:root[data-theme="dark"] .period-tabs a.active,
+:root[data-theme="dark"] .status-filter button.active,
+:root[data-theme="dark"] .medication-filters button.active,
+:root[data-theme="dark"] .food-plan-tabs button.active,
+:root[data-theme="dark"] .patient-list-item.active,
+:root[data-theme="dark"] .message-thread.active {
+  background: rgba(20, 184, 166, 0.16);
+  color: var(--ink-900);
+}
+
+:root[data-theme="dark"] .sidebar-nav a.active,
+:root[data-theme="dark"] .sidebar-nav button.active {
+  border-color: rgba(20, 184, 166, 0.28);
+  background: rgba(20, 184, 166, 0.14);
+  color: var(--ink-900);
+}
+
+:root[data-theme="dark"] .sidebar-brand::after,
+:root[data-theme="dark"] .weekly-metric:not(:last-child),
+:root[data-theme="dark"] .alert-detail-header {
+  background: rgba(230, 247, 243, 0.14);
+  border-color: rgba(230, 247, 243, 0.12);
+}
+
+:root[data-theme="dark"] .avatar-badge,
+:root[data-theme="dark"] .topbar-avatar {
+  background: linear-gradient(135deg, rgba(20, 184, 166, 0.26), rgba(17, 31, 47, 0.88));
+  color: var(--ink-900);
+}
+
+:root[data-theme="dark"] .modal-backdrop {
+  background: rgba(4, 11, 20, 0.7);
 }
 
 .topbar-profile {
@@ -2590,39 +2878,89 @@ body:has(.auth-overlay:target) {
   background: linear-gradient(90deg, rgba(216, 61, 76, 0.72), var(--red-500));
 }
 
+.insight-fullscreen-shell {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 8% 6%, rgba(20, 184, 166, 0.14), transparent 30%),
+    radial-gradient(circle at 92% 14%, rgba(111, 168, 220, 0.12), transparent 28%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(238, 249, 249, 0.92) 48%, rgba(255, 255, 255, 0.98));
+  padding: clamp(18px, 4vw, 54px);
+}
+
+.insight-fullscreen-shell .weekly-insight-page {
+  max-width: 1380px;
+  margin: 0 auto;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+}
+
 .weekly-insight-page {
+  position: relative;
+  isolation: isolate;
   display: grid;
-  gap: 16px;
+  gap: 22px;
+  overflow: hidden;
+  border: 1px solid rgba(215, 230, 236, 0.68);
+  border-radius: 34px;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(20, 184, 166, 0.14), transparent 28%),
+    radial-gradient(circle at 92% 20%, rgba(111, 168, 220, 0.12), transparent 26%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(241, 249, 249, 0.9) 48%, rgba(255, 255, 255, 0.96));
+  box-shadow: var(--soft-shadow);
+  padding: clamp(18px, 3vw, 34px);
+}
+
+.weekly-insight-page::before {
+  position: absolute;
+  inset: -20% -12% auto auto;
+  z-index: -1;
+  width: 520px;
+  height: 520px;
+  border: 1px solid rgba(20, 184, 166, 0.12);
+  border-radius: 50%;
+  content: "";
+}
+
+.weekly-insight-page::after {
+  position: absolute;
+  inset: auto auto -18% -10%;
+  z-index: -1;
+  width: 460px;
+  height: 460px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(20, 184, 166, 0.11), transparent 64%);
+  content: "";
 }
 
 .insight-hero-panel,
 .insight-panel,
 .insight-metric-card,
 .weekly-insight-setup {
-  border: 1px solid rgba(215, 230, 236, 0.82);
-  box-shadow: var(--soft-shadow);
+  border: 0;
+  box-shadow: none;
 }
 
 .insight-hero-panel {
   position: relative;
   isolation: isolate;
   display: grid;
-  gap: 18px;
-  overflow: hidden;
-  border-radius: 30px;
-  background:
-    radial-gradient(circle at 82% 20%, rgba(20, 184, 166, 0.26), transparent 28%),
-    radial-gradient(circle at 8% 4%, rgba(111, 168, 220, 0.18), transparent 28%),
-    linear-gradient(135deg, var(--blue-700), #102e42 58%, #12676a);
-  color: white;
-  padding: 22px;
+  gap: clamp(22px, 4vw, 42px);
+  align-items: center;
+  overflow: visible;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink-900);
+  padding: 0;
 }
 
 .insight-hero-panel::before,
 .insight-hero-panel::after {
   position: absolute;
   z-index: -1;
-  border: 1px solid rgba(230, 247, 243, 0.12);
+  border: 1px solid rgba(20, 184, 166, 0.12);
   border-radius: 50%;
   content: "";
 }
@@ -2650,13 +2988,14 @@ body:has(.auth-overlay:target) {
 
 .insight-back-link {
   width: fit-content;
-  border: 1px solid rgba(230, 247, 243, 0.14);
+  border: 1px solid rgba(13, 27, 42, 0.08);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(242, 244, 247, 0.86);
+  background: rgba(255, 255, 255, 0.76);
+  color: var(--ink-700);
   font-size: 0.8rem;
   padding: 9px 12px;
   text-decoration: none;
+  box-shadow: 0 14px 30px rgba(13, 27, 42, 0.06);
 }
 
 .insight-back-link:hover {
@@ -2664,7 +3003,7 @@ body:has(.auth-overlay:target) {
 }
 
 .insight-hero-copy .eyebrow {
-  color: rgba(157, 231, 220, 0.92);
+  color: var(--teal-600);
 }
 
 .insight-hero-copy h2 {
@@ -2674,12 +3013,13 @@ body:has(.auth-overlay:target) {
   font-size: clamp(2rem, 7vw, 4.6rem);
   line-height: 0.98;
   letter-spacing: -0.04em;
+  color: var(--blue-700);
 }
 
 .insight-hero-copy p:not(.eyebrow) {
   max-width: 760px;
   margin: 0;
-  color: rgba(242, 244, 247, 0.78);
+  color: var(--ink-700);
   font-size: clamp(1rem, 2vw, 1.16rem);
   font-weight: 600;
   line-height: 1.6;
@@ -2693,27 +3033,60 @@ body:has(.auth-overlay:target) {
 }
 
 .insight-period-row span {
-  border: 1px solid rgba(230, 247, 243, 0.14);
+  border: 1px solid rgba(20, 184, 166, 0.16);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(242, 244, 247, 0.76);
+  background: rgba(230, 247, 243, 0.72);
+  color: var(--ink-700);
   font-size: 0.78rem;
   font-weight: 800;
   padding: 9px 12px;
 }
 
 .insight-attention-card {
+  position: relative;
   display: grid;
-  gap: 10px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
   align-content: center;
-  min-height: 220px;
-  border: 1px solid rgba(230, 247, 243, 0.16);
-  border-radius: 26px;
+  align-items: start;
+  min-width: 0;
+  min-height: 0;
+  border: 1px solid rgba(13, 27, 42, 0.08);
+  border-radius: 34px;
   background:
-    radial-gradient(circle at 50% 18%, rgba(20, 184, 166, 0.26), transparent 40%),
-    rgba(255, 255, 255, 0.08);
-  padding: 20px;
-  backdrop-filter: blur(18px);
+    radial-gradient(circle at 86% 18%, rgba(20, 184, 166, 0.22), transparent 38%),
+    linear-gradient(145deg, rgba(13, 27, 42, 0.97), rgba(12, 46, 61, 0.92));
+  color: white;
+  padding: clamp(18px, 3vw, 28px);
+  box-shadow: 0 24px 58px rgba(13, 27, 42, 0.16);
+}
+
+.insight-attention-card > div:not(.insight-orb) {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.insight-orb {
+  display: grid;
+  place-items: center;
+  width: clamp(92px, 10vw, 118px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(13, 27, 42, 0.96) 0 55%, transparent 56%),
+    conic-gradient(var(--teal-600) var(--attention-progress), rgba(230, 247, 243, 0.16) 0);
+  box-shadow:
+    inset 0 0 0 1px rgba(230, 247, 243, 0.08),
+    0 0 38px rgba(20, 184, 166, 0.16);
+}
+
+.insight-orb span {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--teal-600);
+  box-shadow: 0 0 24px rgba(20, 184, 166, 0.72);
 }
 
 .insight-attention-card span {
@@ -2726,8 +3099,9 @@ body:has(.auth-overlay:target) {
 .insight-attention-card strong {
   color: white;
   font-family: Manrope, Inter, ui-sans-serif, system-ui, sans-serif;
-  font-size: clamp(2rem, 5vw, 3.4rem);
-  line-height: 0.94;
+  font-size: clamp(1.65rem, 3.2vw, 2.45rem);
+  line-height: 1;
+  overflow-wrap: normal;
 }
 
 .insight-attention-card p {
@@ -2739,19 +3113,24 @@ body:has(.auth-overlay:target) {
 
 .insight-metric-grid {
   display: grid;
-  gap: 12px;
+  gap: 0;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid rgba(13, 27, 42, 0.08);
+  border-bottom: 1px solid rgba(13, 27, 42, 0.08);
 }
 
 .insight-metric-card {
   display: grid;
   gap: 8px;
   min-width: 0;
-  border-radius: 22px;
-  background:
-    radial-gradient(circle at 84% 8%, rgba(20, 184, 166, 0.12), transparent 32%),
-    rgba(255, 255, 255, 0.92);
-  padding: 16px;
+  border-right: 1px solid rgba(13, 27, 42, 0.08);
+  border-radius: 0;
+  background: transparent;
+  padding: clamp(14px, 2vw, 22px);
+}
+
+.insight-metric-card:last-child {
+  border-right: 0;
 }
 
 .insight-metric-card span,
@@ -2774,18 +3153,16 @@ body:has(.auth-overlay:target) {
 
 .insight-main-grid {
   display: grid;
-  gap: 16px;
+  gap: 28px;
 }
 
 .insight-panel,
 .weekly-insight-setup {
   min-width: 0;
   overflow: hidden;
-  border-radius: 28px;
-  background:
-    radial-gradient(circle at 12% 0%, rgba(20, 184, 166, 0.12), transparent 32%),
-    linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(247, 251, 252, 0.88));
-  padding: 18px;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
 }
 
 .weekly-insight-setup {
@@ -2811,7 +3188,12 @@ body:has(.auth-overlay:target) {
 
 .insight-chart-panel {
   display: grid;
-  gap: 14px;
+  gap: 18px;
+  border-radius: 32px;
+  background:
+    radial-gradient(circle at 10% 6%, rgba(20, 184, 166, 0.12), transparent 30%),
+    rgba(255, 255, 255, 0.58);
+  padding: clamp(18px, 3vw, 28px);
 }
 
 .insight-week-chart-wrap {
@@ -2823,7 +3205,7 @@ body:has(.auth-overlay:target) {
   display: block;
   width: 100%;
   height: auto;
-  min-height: 230px;
+  min-height: 260px;
   overflow: visible;
 }
 
@@ -2884,7 +3266,7 @@ body:has(.auth-overlay:target) {
 
 .insight-range-strip {
   display: flex;
-  min-height: 36px;
+  min-height: 44px;
   overflow: hidden;
   border-radius: 999px;
   background: rgba(13, 27, 42, 0.08);
@@ -2915,35 +3297,204 @@ body:has(.auth-overlay:target) {
   background: linear-gradient(90deg, rgba(216, 61, 76, 0.72), var(--red-500));
 }
 
+.insight-distribution-panel {
+  display: grid;
+  gap: 14px;
+  border-top: 1px solid rgba(13, 27, 42, 0.08);
+  padding-top: 18px;
+}
+
+.insight-distribution-panel strong,
+.insight-distribution-panel span {
+  display: block;
+}
+
+.insight-distribution-panel strong {
+  color: var(--ink-900);
+  font-family: Manrope, Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(1.25rem, 3vw, 1.75rem);
+  line-height: 1;
+}
+
+.insight-distribution-panel span {
+  margin-top: 5px;
+  color: var(--ink-500);
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
 .insight-pattern-list,
 .insight-recommendation-list {
   display: grid;
+  gap: 0;
+  margin-top: 20px;
+}
+
+.insight-pattern-panel {
+  align-self: stretch;
+}
+
+.insight-rhythm-panel {
+  display: grid;
+  gap: 18px;
+  border-radius: 32px;
+  background:
+    radial-gradient(circle at 92% 8%, rgba(20, 184, 166, 0.1), transparent 32%),
+    rgba(255, 255, 255, 0.56);
+  padding: clamp(18px, 3vw, 28px);
+}
+
+.insight-rhythm-chart {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 10px;
-  margin-top: 16px;
+  min-height: 230px;
+}
+
+.insight-rhythm-day {
+  display: grid;
+  grid-template-rows: minmax(120px, 1fr) auto auto auto;
+  gap: 7px;
+  min-width: 0;
+  align-items: end;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.56);
+  padding: 10px;
+}
+
+.insight-rhythm-bar-wrap {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  height: 100%;
+  min-height: 120px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(13, 27, 42, 0.08);
+}
+
+.insight-rhythm-bar {
+  display: block;
+  width: 100%;
+  min-height: 8px;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgba(20, 184, 166, 0.94), rgba(20, 184, 166, 0.48));
+  box-shadow: 0 -10px 24px rgba(20, 184, 166, 0.14);
+}
+
+.insight-rhythm-day.high .insight-rhythm-bar {
+  background: linear-gradient(180deg, rgba(216, 61, 76, 0.94), rgba(216, 61, 76, 0.48));
+}
+
+.insight-rhythm-day.low .insight-rhythm-bar {
+  background: linear-gradient(180deg, rgba(111, 168, 220, 0.95), rgba(111, 168, 220, 0.46));
+}
+
+.insight-rhythm-day.empty .insight-rhythm-bar {
+  background: rgba(114, 128, 146, 0.24);
+}
+
+.insight-rhythm-day strong,
+.insight-rhythm-day span,
+.insight-rhythm-day small {
+  overflow: hidden;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.insight-rhythm-day strong {
+  color: var(--ink-900);
+  font-size: 0.76rem;
+  font-weight: 900;
+  text-transform: capitalize;
+}
+
+.insight-rhythm-day span {
+  color: var(--blue-700);
+  font-family: Manrope, Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: 1.05rem;
+  font-weight: 900;
+}
+
+.insight-rhythm-day span::after {
+  color: var(--ink-500);
+  content: " mg/dL";
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.54rem;
+  font-weight: 800;
+}
+
+.insight-rhythm-day.empty span::after {
+  content: "";
+}
+
+.insight-rhythm-day small {
+  color: var(--ink-500);
+  font-size: 0.64rem;
+  font-weight: 800;
+}
+
+@media (max-width: 760px) {
+  .insight-fullscreen-shell {
+    padding: 16px;
+  }
+
+  .insight-rhythm-chart {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .insight-pattern {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 12px;
   align-items: center;
-  border: 1px solid rgba(215, 230, 236, 0.82);
-  border-left: 5px solid var(--teal-600);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.72);
-  padding: 13px;
+  border: 0;
+  border-bottom: 1px solid rgba(13, 27, 42, 0.08);
+  border-radius: 0;
+  background: transparent;
+  padding: 16px 0 16px 24px;
+}
+
+.insight-pattern::before {
+  position: absolute;
+  top: 22px;
+  left: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--teal-600);
+  box-shadow: 0 0 0 6px rgba(20, 184, 166, 0.12);
+  content: "";
 }
 
 .insight-pattern.warning {
-  border-left-color: #e6a93a;
+  border-left-color: transparent;
+}
+
+.insight-pattern.warning::before {
+  background: #e6a93a;
+  box-shadow: 0 0 0 6px rgba(230, 169, 58, 0.14);
 }
 
 .insight-pattern.danger {
-  border-left-color: var(--red-500);
+  border-left-color: transparent;
+}
+
+.insight-pattern.danger::before {
+  background: var(--red-500);
+  box-shadow: 0 0 0 6px rgba(216, 61, 76, 0.12);
 }
 
 .insight-pattern.info {
-  border-left-color: #6fa8dc;
+  border-left-color: transparent;
+}
+
+.insight-pattern.info::before {
+  background: #6fa8dc;
+  box-shadow: 0 0 0 6px rgba(111, 168, 220, 0.14);
 }
 
 .insight-pattern strong,
@@ -2971,10 +3522,14 @@ body:has(.auth-overlay:target) {
 }
 
 .insight-recommendation-panel {
+  display: grid;
+  gap: 18px;
+  border-radius: 32px;
   background:
     radial-gradient(circle at 84% 10%, rgba(20, 184, 166, 0.14), transparent 30%),
     linear-gradient(145deg, rgba(13, 27, 42, 0.98), rgba(10, 42, 58, 0.94));
   color: white;
+  padding: clamp(20px, 3vw, 30px);
 }
 
 .insight-recommendation-panel .eyebrow,
@@ -2983,13 +3538,15 @@ body:has(.auth-overlay:target) {
 }
 
 .insight-recommendation-list section {
+  position: relative;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   gap: 12px;
-  border: 1px solid rgba(230, 247, 243, 0.12);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.06);
-  padding: 13px;
+  border: 0;
+  border-top: 1px solid rgba(230, 247, 243, 0.12);
+  border-radius: 0;
+  background: transparent;
+  padding: 16px 0;
 }
 
 .insight-recommendation-list span {
@@ -3904,7 +4461,10 @@ body:has(.auth-overlay:target) {
   border-radius: 50%;
   background:
     radial-gradient(circle, var(--surface) 0 55%, transparent 56%),
-    conic-gradient(var(--blue-700) var(--value), rgba(215, 230, 236, 0.8) 0);
+    conic-gradient(#0d1b2a var(--value), rgba(215, 230, 236, 0.86) 0);
+  box-shadow:
+    inset 0 0 0 1px rgba(13, 27, 42, 0.05),
+    0 14px 28px rgba(13, 27, 42, 0.08);
 }
 
 .macro-ring strong,
@@ -6363,6 +6923,411 @@ button.patient-list-item:last-child {
   overflow-wrap: anywhere;
 }
 
+/* Final dark theme layer: keep TrackVitals colors, avoid washed-out light panels. */
+:root[data-theme="dark"] .dashboard-sidebar,
+:root[data-theme="dark"] .dashboard-topbar,
+:root[data-theme="dark"] .dashboard-card,
+:root[data-theme="dark"] .metric-card,
+:root[data-theme="dark"] .patient-calendar-page,
+:root[data-theme="dark"] .patient-calendar-toolbar,
+:root[data-theme="dark"] .records-calendar,
+:root[data-theme="dark"] .calendar-selected-day,
+:root[data-theme="dark"] .patients-directory-hero,
+:root[data-theme="dark"] .patients-compact-list,
+:root[data-theme="dark"] .patient-detail-panel,
+:root[data-theme="dark"] .prescription-summary,
+:root[data-theme="dark"] .prescription-inbox,
+:root[data-theme="dark"] .prescription-detail,
+:root[data-theme="dark"] .signs-summary,
+:root[data-theme="dark"] .signs-timeline,
+:root[data-theme="dark"] .selected-sign-card,
+:root[data-theme="dark"] .alerts-center,
+:root[data-theme="dark"] .alerts-stack,
+:root[data-theme="dark"] .alert-detail,
+:root[data-theme="dark"] .appointments-hero,
+:root[data-theme="dark"] .appointments-calendar,
+:root[data-theme="dark"] .appointment-detail,
+:root[data-theme="dark"] .medication-hero,
+:root[data-theme="dark"] .medication-detail-panel,
+:root[data-theme="dark"] .medication-empty,
+:root[data-theme="dark"] .food-plan-hero,
+:root[data-theme="dark"] .food-plan-empty,
+:root[data-theme="dark"] .meal-timeline,
+:root[data-theme="dark"] .food-plan-detail,
+:root[data-theme="dark"] .messages-hero,
+:root[data-theme="dark"] .messages-inbox,
+:root[data-theme="dark"] .conversation-panel,
+:root[data-theme="dark"] .profile-photo-card,
+:root[data-theme="dark"] .profile-info-card,
+:root[data-theme="dark"] .data-list-item {
+  border-color: rgba(230, 247, 243, 0.12);
+  background:
+    radial-gradient(circle at 12% 0%, rgba(20, 184, 166, 0.08), transparent 34%),
+    linear-gradient(145deg, rgba(17, 31, 47, 0.94), rgba(10, 24, 38, 0.9));
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.26);
+}
+
+:root[data-theme="dark"] .patient-calendar-toolbar,
+:root[data-theme="dark"] .medication-hero,
+:root[data-theme="dark"] .food-plan-hero,
+:root[data-theme="dark"] .messages-hero,
+:root[data-theme="dark"] .patients-directory-hero,
+:root[data-theme="dark"] .prescription-summary,
+:root[data-theme="dark"] .appointments-hero {
+  background:
+    radial-gradient(circle at 88% 18%, rgba(20, 184, 166, 0.15), transparent 34%),
+    linear-gradient(135deg, rgba(20, 184, 166, 0.1), rgba(17, 31, 47, 0.92) 42%, rgba(10, 24, 38, 0.92));
+}
+
+:root[data-theme="dark"] .patient-calendar-toolbar h2,
+:root[data-theme="dark"] .medication-hero h2,
+:root[data-theme="dark"] .food-plan-hero h2,
+:root[data-theme="dark"] .messages-hero h2,
+:root[data-theme="dark"] .patients-directory-hero h2,
+:root[data-theme="dark"] .prescription-summary h2,
+:root[data-theme="dark"] .calendar-selected-day h3,
+:root[data-theme="dark"] .patient-record-detail-heading h3,
+:root[data-theme="dark"] .conversation-header h3,
+:root[data-theme="dark"] .alert-detail-header h3,
+:root[data-theme="dark"] .appointment-detail-header h3,
+:root[data-theme="dark"] .selected-sign-card h3,
+:root[data-theme="dark"] .data-list-heading h3,
+:root[data-theme="dark"] .account-list dd {
+  color: #f8fbfc;
+}
+
+:root[data-theme="dark"] .calendar-month-controls,
+:root[data-theme="dark"] .calendar-insights span,
+:root[data-theme="dark"] .messages-summary span,
+:root[data-theme="dark"] .medication-stats span,
+:root[data-theme="dark"] .prescription-summary span,
+:root[data-theme="dark"] .appointments-summary span,
+:root[data-theme="dark"] .patients-directory-actions > span,
+:root[data-theme="dark"] .range-track,
+:root[data-theme="dark"] .message-day,
+:root[data-theme="dark"] .meal-compliance-summary,
+:root[data-theme="dark"] .summary-period {
+  border-color: rgba(230, 247, 243, 0.14);
+  background: rgba(230, 247, 243, 0.08);
+  color: #c9d5df;
+}
+
+:root[data-theme="dark"] .calendar-month-controls button,
+:root[data-theme="dark"] .calendar-month-controls strong {
+  background: rgba(20, 184, 166, 0.13);
+  color: #f8fbfc;
+}
+
+:root[data-theme="dark"] .calendar-weekdays span,
+:root[data-theme="dark"] .calendar-selected-day span,
+:root[data-theme="dark"] .calendar-record-chip small,
+:root[data-theme="dark"] .patient-record-detail-heading span:not(.glucose-badge),
+:root[data-theme="dark"] .record-detail-lines dt,
+:root[data-theme="dark"] .medication-detail-list dt,
+:root[data-theme="dark"] .food-plan-lines dt,
+:root[data-theme="dark"] .prescription-detail-grid dt,
+:root[data-theme="dark"] .account-list dt,
+:root[data-theme="dark"] .empty-state,
+:root[data-theme="dark"] .chart-empty {
+  color: #9fb2c3;
+}
+
+:root[data-theme="dark"] .calendar-day {
+  border-color: rgba(230, 247, 243, 0.1);
+  background: rgba(20, 37, 54, 0.92);
+  color: #eaf6f4;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+:root[data-theme="dark"] .calendar-day:hover {
+  border-color: rgba(20, 184, 166, 0.34);
+  background: rgba(27, 52, 73, 0.96);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.2);
+}
+
+:root[data-theme="dark"] .calendar-day.active {
+  border-color: rgba(20, 184, 166, 0.6);
+  background:
+    radial-gradient(circle at 80% 12%, rgba(20, 184, 166, 0.24), transparent 38%),
+    linear-gradient(145deg, rgba(14, 43, 61, 0.98), rgba(12, 30, 46, 0.98));
+  color: #ffffff;
+  box-shadow:
+    0 14px 34px rgba(0, 0, 0, 0.24),
+    inset 0 0 0 1px rgba(20, 184, 166, 0.18);
+}
+
+:root[data-theme="dark"] .calendar-day.muted {
+  opacity: 0.34;
+}
+
+:root[data-theme="dark"] .calendar-day.normal:not(.active) {
+  background:
+    linear-gradient(145deg, rgba(20, 184, 166, 0.18), rgba(20, 37, 54, 0.92));
+}
+
+:root[data-theme="dark"] .calendar-day.high:not(.active) {
+  background:
+    linear-gradient(145deg, rgba(216, 61, 76, 0.16), rgba(20, 37, 54, 0.92));
+}
+
+:root[data-theme="dark"] .calendar-day.low:not(.active) {
+  background:
+    linear-gradient(145deg, rgba(111, 168, 220, 0.16), rgba(20, 37, 54, 0.92));
+}
+
+:root[data-theme="dark"] .calendar-day strong {
+  background: rgba(230, 247, 243, 0.1);
+  color: #f8fbfc;
+}
+
+:root[data-theme="dark"] .calendar-record-chip,
+:root[data-theme="dark"] .record-list-item,
+:root[data-theme="dark"] .prescription-row,
+:root[data-theme="dark"] .alert-row,
+:root[data-theme="dark"] .message-thread,
+:root[data-theme="dark"] .medication-dose-card,
+:root[data-theme="dark"] .meal-card,
+:root[data-theme="dark"] .appointment-day-list button,
+:root[data-theme="dark"] .patient-list-item.selectable,
+:root[data-theme="dark"] .food-plan-tabs button,
+:root[data-theme="dark"] .medication-filters button,
+:root[data-theme="dark"] .message-filters button,
+:root[data-theme="dark"] .status-filter button,
+:root[data-theme="dark"] .period-tabs button,
+:root[data-theme="dark"] .period-tabs a {
+  border-color: rgba(230, 247, 243, 0.1);
+  background: rgba(230, 247, 243, 0.06);
+  color: #d8e4ec;
+}
+
+:root[data-theme="dark"] .calendar-record-chip.active,
+:root[data-theme="dark"] .prescription-row.active,
+:root[data-theme="dark"] .alert-row.active,
+:root[data-theme="dark"] .message-thread.active,
+:root[data-theme="dark"] .medication-dose-card.active,
+:root[data-theme="dark"] .food-plan-tabs button.active,
+:root[data-theme="dark"] .medication-filters button.active,
+:root[data-theme="dark"] .message-filters button.active,
+:root[data-theme="dark"] .status-filter button.active,
+:root[data-theme="dark"] .period-tabs button.active,
+:root[data-theme="dark"] .period-tabs a.active,
+:root[data-theme="dark"] .patient-list-item.selectable:hover,
+:root[data-theme="dark"] .patient-list-item.selectable.active {
+  border-color: rgba(20, 184, 166, 0.36);
+  background:
+    linear-gradient(135deg, rgba(20, 184, 166, 0.2), rgba(230, 247, 243, 0.06));
+  color: #f8fbfc;
+  box-shadow: inset 3px 0 0 rgba(20, 184, 166, 0.8);
+}
+
+:root[data-theme="dark"] .calendar-record-chip strong,
+:root[data-theme="dark"] .record-list-item span,
+:root[data-theme="dark"] .record-list-item strong,
+:root[data-theme="dark"] .message-thread strong,
+:root[data-theme="dark"] .medication-dose-card strong,
+:root[data-theme="dark"] .meal-card h3,
+:root[data-theme="dark"] .prescription-row strong,
+:root[data-theme="dark"] .alert-row strong,
+:root[data-theme="dark"] .record-detail-lines dd,
+:root[data-theme="dark"] .medication-detail-list dd,
+:root[data-theme="dark"] .food-plan-lines dd,
+:root[data-theme="dark"] .prescription-detail-grid dd,
+:root[data-theme="dark"] .message-bubble p,
+:root[data-theme="dark"] .range-stat strong,
+:root[data-theme="dark"] .macro-ring strong,
+:root[data-theme="dark"] .treatment-meter strong {
+  color: #f8fbfc;
+}
+
+:root[data-theme="dark"] .glucose-badge,
+:root[data-theme="dark"] .macro-ring,
+:root[data-theme="dark"] .treatment-meter,
+:root[data-theme="dark"] .profile-photo-frame {
+  border-color: rgba(230, 247, 243, 0.12);
+  background:
+    radial-gradient(circle, rgba(230, 247, 243, 0.08) 0 54%, transparent 55%),
+    rgba(230, 247, 243, 0.06);
+  color: #f8fbfc;
+}
+
+:root[data-theme="dark"] .macro-ring {
+  background:
+    radial-gradient(circle, #111f2f 0 55%, transparent 56%),
+    conic-gradient(#14b8a6 var(--value), rgba(230, 247, 243, 0.16) 0);
+  box-shadow:
+    inset 0 0 0 1px rgba(230, 247, 243, 0.08),
+    0 16px 34px rgba(0, 0, 0, 0.2),
+    0 0 22px rgba(20, 184, 166, 0.08);
+}
+
+:root[data-theme="dark"] .food-plan-score {
+  border: 1px solid rgba(20, 184, 166, 0.28);
+  background:
+    radial-gradient(circle at 30% 20%, rgba(230, 247, 243, 0.18), transparent 34%),
+    linear-gradient(145deg, rgba(20, 184, 166, 0.34), rgba(17, 31, 47, 0.82));
+  color: #f8fbfc;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 18px 42px rgba(0, 0, 0, 0.22),
+    0 0 28px rgba(20, 184, 166, 0.12);
+}
+
+:root[data-theme="dark"] .food-plan-score span {
+  color: rgba(230, 247, 243, 0.78);
+}
+
+:root[data-theme="dark"] .insight-fullscreen-shell {
+  background:
+    radial-gradient(circle at 8% 6%, rgba(20, 184, 166, 0.12), transparent 30%),
+    radial-gradient(circle at 92% 14%, rgba(111, 168, 220, 0.1), transparent 28%),
+    linear-gradient(145deg, #08111d, #0d1b2a 54%, #0f2734);
+}
+
+:root[data-theme="dark"] .weekly-insight-page {
+  border-color: rgba(230, 247, 243, 0.12);
+  background:
+    radial-gradient(circle at 12% 0%, rgba(20, 184, 166, 0.12), transparent 30%),
+    radial-gradient(circle at 92% 20%, rgba(111, 168, 220, 0.1), transparent 28%),
+    linear-gradient(145deg, rgba(17, 31, 47, 0.96), rgba(9, 22, 35, 0.94));
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.24);
+}
+
+:root[data-theme="dark"] .weekly-insight-page::before {
+  border-color: rgba(230, 247, 243, 0.08);
+}
+
+:root[data-theme="dark"] .insight-hero-copy h2,
+:root[data-theme="dark"] .insight-distribution-panel strong,
+:root[data-theme="dark"] .insight-panel h3,
+:root[data-theme="dark"] .insight-metric-card strong,
+:root[data-theme="dark"] .insight-pattern strong {
+  color: #f8fbfc;
+}
+
+:root[data-theme="dark"] .insight-hero-copy p:not(.eyebrow),
+:root[data-theme="dark"] .insight-pattern p,
+:root[data-theme="dark"] .insight-distribution-panel span,
+:root[data-theme="dark"] .insight-week-days,
+:root[data-theme="dark"] .insight-metric-card span,
+:root[data-theme="dark"] .insight-metric-card em {
+  color: #c9d5df;
+}
+
+:root[data-theme="dark"] .insight-back-link,
+:root[data-theme="dark"] .insight-period-row span {
+  border-color: rgba(230, 247, 243, 0.12);
+  background: rgba(230, 247, 243, 0.07);
+  color: #d8e4ec;
+}
+
+:root[data-theme="dark"] .insight-metric-grid,
+:root[data-theme="dark"] .insight-metric-card,
+:root[data-theme="dark"] .insight-distribution-panel,
+:root[data-theme="dark"] .insight-pattern,
+:root[data-theme="dark"] .insight-recommendation-list section {
+  border-color: rgba(230, 247, 243, 0.1);
+}
+
+:root[data-theme="dark"] .insight-chart-panel {
+  background:
+    radial-gradient(circle at 10% 6%, rgba(20, 184, 166, 0.1), transparent 30%),
+    rgba(230, 247, 243, 0.04);
+}
+
+:root[data-theme="dark"] .insight-rhythm-panel {
+  background:
+    radial-gradient(circle at 92% 8%, rgba(20, 184, 166, 0.1), transparent 32%),
+    rgba(230, 247, 243, 0.04);
+}
+
+:root[data-theme="dark"] .insight-rhythm-day {
+  background: rgba(230, 247, 243, 0.06);
+}
+
+:root[data-theme="dark"] .insight-rhythm-bar-wrap {
+  background: rgba(230, 247, 243, 0.08);
+}
+
+:root[data-theme="dark"] .insight-rhythm-day strong,
+:root[data-theme="dark"] .insight-rhythm-day span {
+  color: #f8fbfc;
+}
+
+:root[data-theme="dark"] .insight-rhythm-day small,
+:root[data-theme="dark"] .insight-rhythm-day span::after {
+  color: #91a3b4;
+}
+
+:root[data-theme="dark"] .insight-range-strip {
+  background: rgba(230, 247, 243, 0.08);
+}
+
+:root[data-theme="dark"] .insight-target-zone {
+  fill: rgba(20, 184, 166, 0.1);
+  stroke: rgba(20, 184, 166, 0.18);
+}
+
+:root[data-theme="dark"] .insight-range-lines {
+  stroke: rgba(230, 247, 243, 0.18);
+}
+
+:root[data-theme="dark"] .insight-range-pin {
+  stroke: rgba(230, 247, 243, 0.2);
+}
+
+:root[data-theme="dark"] .insight-point {
+  fill: #111f2f;
+}
+
+:root[data-theme="dark"] .insight-pattern span {
+  background: rgba(20, 184, 166, 0.14);
+  color: #e6f7f3;
+}
+
+:root[data-theme="dark"] .weekly-metric-panel::before {
+  border-color: transparent;
+}
+
+:root[data-theme="dark"] .weekly-metric,
+:root[data-theme="dark"] .weekly-metric:not(:last-child) {
+  background: transparent;
+}
+
+:root[data-theme="dark"] .weekly-metric:not(:last-child) {
+  border-bottom-color: rgba(230, 247, 243, 0.12);
+}
+
+:root[data-theme="dark"] .message-bubble {
+  border-color: rgba(230, 247, 243, 0.1);
+  background: rgba(230, 247, 243, 0.07);
+}
+
+:root[data-theme="dark"] .message-bubble.own {
+  border-color: rgba(20, 184, 166, 0.22);
+  background: rgba(20, 184, 166, 0.14);
+}
+
+:root[data-theme="dark"] .meal-macros span,
+:root[data-theme="dark"] .ig-badge.bajo,
+:root[data-theme="dark"] .ig-badge.medio,
+:root[data-theme="dark"] .ig-badge.alto {
+  background: rgba(230, 247, 243, 0.08);
+  color: #d8e4ec;
+}
+
+:root[data-theme="dark"] .alert-detail.high,
+:root[data-theme="dark"] .alert-detail.medium,
+:root[data-theme="dark"] .alert-detail.low {
+  background:
+    radial-gradient(circle at 12% 0%, rgba(20, 184, 166, 0.08), transparent 34%),
+    linear-gradient(145deg, rgba(17, 31, 47, 0.94), rgba(10, 24, 38, 0.9));
+}
+
+:root[data-theme="dark"] .form-error {
+  background: rgba(216, 61, 76, 0.12);
+  color: #ffb7c0;
+}
+
 @media (min-width: 680px) {
   .auth-overlay {
     padding: 48px 28px;
@@ -6449,7 +7414,7 @@ button.patient-list-item:last-child {
   }
 
   .insight-hero-panel {
-    grid-template-columns: minmax(0, 1fr) minmax(260px, 0.34fr);
+    grid-template-columns: minmax(0, 1.05fr) minmax(340px, 0.7fr);
     align-items: stretch;
   }
 

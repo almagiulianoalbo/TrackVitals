@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { LogoutButton } from "@/components/LogoutButton";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { roleLabels, type SessionUser } from "@/lib/auth-types";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
@@ -57,7 +58,10 @@ export async function DashboardShell({ user, activeItem, subtitle, hideTopbar = 
               </div>
               <p>{subtitle}</p>
             </div>
-            <LogoutButton />
+            <div className="topbar-actions">
+              <ThemeToggle />
+              <LogoutButton />
+            </div>
           </header>
         ) : null}
 

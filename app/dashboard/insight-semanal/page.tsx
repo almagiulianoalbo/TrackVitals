@@ -1,6 +1,6 @@
+import type { CSSProperties, ReactNode } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { DashboardShell } from "@/components/DashboardChrome";
 import { getCurrentSession } from "@/lib/auth";
 import { getOrCreateWeeklyInsight, type WeeklyInsightDocument } from "@/lib/weekly-insights";
 
@@ -19,9 +19,9 @@ export default async function WeeklyInsightPage() {
     const insight = await getOrCreateWeeklyInsight(user.userId);
 
     return (
-      <DashboardShell user={user} activeItem="panel" subtitle="Lectura inteligente de tus registros clínicos.">
+      <InsightFullscreenShell>
         <WeeklyInsightView insight={insight} />
-      </DashboardShell>
+      </InsightFullscreenShell>
     );
   } catch (error) {
     console.error(error);
@@ -29,7 +29,7 @@ export default async function WeeklyInsightPage() {
     const missingMongoUri = errorMessage.includes("MONGODB_URI");
 
     return (
-      <DashboardShell user={user} activeItem="panel" subtitle="Lectura inteligente de tus registros clínicos.">
+      <InsightFullscreenShell>
         <section className="weekly-insight-page">
           <article className="weekly-insight-setup">
             <p className="eyebrow">Insight semanal</p>
@@ -45,23 +45,33 @@ export default async function WeeklyInsightPage() {
             </Link>
           </article>
         </section>
-      </DashboardShell>
+      </InsightFullscreenShell>
     );
   }
 }
 
+function InsightFullscreenShell({ children }: { children: ReactNode }) {
+  return (
+    <main className="insight-fullscreen-shell">
+      {children}
+    </main>
+  );
+}
+
 function WeeklyInsightView({ insight }: { insight: WeeklyInsightDocument }) {
   const generatedAt = new Date(insight.generatedAt);
+  const rangePercent = insight.metrics.timeInRange ?? 0;
+  const outOfRangeCount = insight.metrics.hypoglycemiaCount + insight.metrics.hyperglycemiaCount;
 
   return (
     <section className="weekly-insight-page">
-      <div className={`insight-hero-panel ${insight.attentionLevel}`}>
+      <article className={`insight-hero-panel ${insight.attentionLevel}`}>
         <div className="insight-hero-copy">
           <Link className="insight-back-link" href="/dashboard">
             Volver al panel
           </Link>
           <p className="eyebrow">Insight semanal</p>
-          <h2>Tu semana clínica, interpretada.</h2>
+          <h2>Tu semana clínica, interpretada en contexto.</h2>
           <p>{insight.summary}</p>
           <div className="insight-period-row">
             <span>{formatDate(insight.weekStart)} - {formatDate(insight.weekEnd)}</span>
@@ -69,18 +79,23 @@ function WeeklyInsightView({ insight }: { insight: WeeklyInsightDocument }) {
           </div>
         </div>
 
-        <aside className="insight-attention-card">
-          <span>Nivel de atención</span>
-          <strong>{formatAttention(insight.attentionLevel)}</strong>
-          <p>{getAttentionCaption(insight.attentionLevel)}</p>
+        <aside className="insight-attention-card" style={{ "--attention-progress": `${rangePercent}%` } as CSSProperties}>
+          <div className="insight-orb" aria-hidden="true">
+            <span />
+          </div>
+          <div>
+            <span>Nivel de atención</span>
+            <strong>{formatAttention(insight.attentionLevel)}</strong>
+            <p>{getAttentionCaption(insight.attentionLevel)}</p>
+          </div>
         </aside>
-      </div>
+      </article>
 
-      <div className="insight-metric-grid">
+      <div className="insight-metric-grid" aria-label="Métricas principales">
         <InsightMetric label="Tiempo en rango" value={formatPercent(insight.metrics.timeInRange)} detail="Objetivo 70-180 mg/dL" />
-        <InsightMetric label="Promedio" value={formatMetric(insight.metrics.averageGlucose, "mg/dL")} detail={`${insight.metrics.totalRecords} registros`} />
-        <InsightMetric label="Variabilidad" value={formatMetric(insight.metrics.variability, "mg/dL")} detail="Dispersión semanal" />
-        <InsightMetric label="Cobertura" value={`${insight.metrics.daysWithRecords}/7`} detail="Días con registros" />
+        <InsightMetric label="Promedio semanal" value={formatMetric(insight.metrics.averageGlucose, "mg/dL")} detail={`${insight.metrics.totalRecords} registros analizados`} />
+        <InsightMetric label="Variabilidad" value={formatMetric(insight.metrics.variability, "mg/dL")} detail="Amplitud de cambios" />
+        <InsightMetric label="Cobertura" value={`${insight.metrics.daysWithRecords}/7`} detail="Días con datos útiles" />
       </div>
 
       <div className="insight-main-grid">
@@ -88,21 +103,43 @@ function WeeklyInsightView({ insight }: { insight: WeeklyInsightDocument }) {
           <div className="chart-heading-row">
             <div>
               <p className="eyebrow">Mapa semanal</p>
-              <h3>Promedio diario y rango real</h3>
+              <h3>Promedio diario, mínimos y máximos</h3>
             </div>
             <span>{insight.metrics.totalRecords ? "Datos de Supabase" : "Sin registros"}</span>
           </div>
           <InsightWeekChart insight={insight} />
-          <div className="insight-range-strip" aria-label="Distribución por rango">
-            <RangeSegment className="low" count={insight.chartData.rangeDistribution.low} total={insight.metrics.totalRecords} label="Bajas" />
-            <RangeSegment className="normal" count={insight.chartData.rangeDistribution.inRange} total={insight.metrics.totalRecords} label="En rango" />
-            <RangeSegment className="high" count={insight.chartData.rangeDistribution.high} total={insight.metrics.totalRecords} label="Altas" />
+
+          <div className="insight-distribution-panel">
+            <div>
+              <p className="eyebrow">Distribución de controles</p>
+              <strong>{outOfRangeCount ? `${outOfRangeCount} fuera de rango` : "Sin eventos fuera de rango"}</strong>
+              <span>{insight.metrics.totalRecords ? `${insight.metrics.totalRecords} registros en la semana` : "Todavía falta base de datos"}</span>
+            </div>
+            <div className="insight-range-strip" aria-label="Distribución por rango">
+              <RangeSegment className="low" count={insight.chartData.rangeDistribution.low} total={insight.metrics.totalRecords} label="Bajas" />
+              <RangeSegment className="normal" count={insight.chartData.rangeDistribution.inRange} total={insight.metrics.totalRecords} label="En rango" />
+              <RangeSegment className="high" count={insight.chartData.rangeDistribution.high} total={insight.metrics.totalRecords} label="Altas" />
+            </div>
           </div>
         </article>
 
-        <article className="insight-panel">
-          <p className="eyebrow">Patrones detectados</p>
-          <h3>Señales que vale la pena mirar</h3>
+        <article className="insight-panel insight-rhythm-panel">
+          <div className="chart-heading-row">
+            <div>
+              <p className="eyebrow">Ritmo semanal</p>
+              <h3>Frecuencia de registros y respuesta promedio</h3>
+            </div>
+          </div>
+          <InsightRhythmChart insight={insight} />
+        </article>
+
+        <article className="insight-panel insight-pattern-panel">
+          <div className="chart-heading-row">
+            <div>
+              <p className="eyebrow">Patrones detectados</p>
+              <h3>Señales que vale la pena mirar</h3>
+            </div>
+          </div>
           <div className="insight-pattern-list">
             {insight.patterns.map((pattern) => (
               <section className={`insight-pattern ${pattern.tone}`} key={pattern.title}>
@@ -117,8 +154,10 @@ function WeeklyInsightView({ insight }: { insight: WeeklyInsightDocument }) {
         </article>
 
         <article className="insight-panel insight-recommendation-panel">
-          <p className="eyebrow">Para conversar con tu médico</p>
-          <h3>Recomendaciones accionables</h3>
+          <div>
+            <p className="eyebrow">Para conversar con tu médico</p>
+            <h3>Preguntas y próximos pasos sugeridos</h3>
+          </div>
           <div className="insight-recommendation-list">
             {insight.recommendations.map((recommendation, index) => (
               <section key={recommendation.title}>
@@ -133,6 +172,30 @@ function WeeklyInsightView({ insight }: { insight: WeeklyInsightDocument }) {
         </article>
       </div>
     </section>
+  );
+}
+
+function InsightRhythmChart({ insight }: { insight: WeeklyInsightDocument }) {
+  const maxCount = Math.max(1, ...insight.chartData.daily.map((day) => day.count));
+
+  return (
+    <div className="insight-rhythm-chart" aria-label="Ritmo semanal de registros">
+      {insight.chartData.daily.map((day) => {
+        const height = Math.max(day.count ? 18 : 8, Math.round((day.count / maxCount) * 100));
+        const tone = getDayTone(day.average);
+
+        return (
+          <div className={`insight-rhythm-day ${tone}`} key={day.date}>
+            <div className="insight-rhythm-bar-wrap">
+              <span className="insight-rhythm-bar" style={{ height: `${height}%` }} />
+            </div>
+            <strong>{day.label}</strong>
+            <span>{day.average === null ? "--" : `${day.average}`}</span>
+            <small>{day.count} reg.</small>
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
@@ -233,6 +296,13 @@ function getPointClass(value: number | null) {
   if (value < 70) return "insight-point low";
   if (value > 180) return "insight-point high";
   return "insight-point normal";
+}
+
+function getDayTone(value: number | null) {
+  if (value === null) return "empty";
+  if (value < 70) return "low";
+  if (value > 180) return "high";
+  return "normal";
 }
 
 function formatMetric(value: number | null, unit: string) {
