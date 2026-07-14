@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { getInitials } from "@/components/DashboardChrome";
 import { PatientLinkFields } from "@/components/PatientLinkFields";
 import { formatDateTime } from "@/lib/dashboard-format";
+import { readRecentPatientIds, rememberRecentPatient } from "@/lib/recent-patients";
 
 type ModalType = "patient" | "prescription" | "appointment";
 type RangeKey = "7d" | "1m" | "3m";
@@ -15,6 +16,7 @@ export type DoctorPatientPreview = {
   nombre: string;
   apellido: string;
   email: string | null;
+  foto_url: string | null;
   fecha_nacimiento: string | null;
   tipo_diabetes: string | null;
 };
@@ -68,6 +70,7 @@ export function DoctorDashboardPanel({
   const [activeModal, setActiveModal] = useState<ModalType | null>(null);
   const [submitState, setSubmitState] = useState<SubmitState>(initialState);
   const [selectedPatientId, setSelectedPatientId] = useState<number | null>(patients[0]?.id_paciente ?? null);
+  const [recentPatientIds, setRecentPatientIds] = useState<number[]>([]);
   const [range, setRange] = useState<RangeKey>("7d");
   const [summaryState, setSummaryState] = useState<SummaryState>({ loading: false, error: null, data: null });
   const router = useRouter();
@@ -75,8 +78,25 @@ export function DoctorDashboardPanel({
     () => patients.find((patient) => patient.id_paciente === selectedPatientId) ?? patients[0] ?? null,
     [patients, selectedPatientId]
   );
+  const selectedPatientName = selectedPatient ? `${selectedPatient.nombre} ${selectedPatient.apellido}` : "Sin pacientes asignados";
+  const orderedQuickPatients = useMemo(() => orderPatientsByLocalRecency(patients, recentPatientIds), [patients, recentPatientIds]);
+  const patientIdsKey = useMemo(() => patients.map((patient) => patient.id_paciente).join("|"), [patients]);
   const records = summaryState.data?.records ?? [];
   const metrics = useMemo(() => buildMetrics(records), [records]);
+
+  useEffect(() => {
+    const nextRecentPatientIds = readRecentPatientIds();
+    setRecentPatientIds(nextRecentPatientIds);
+
+    const availablePatientIds = new Set(patientIdsKey.split("|").map(Number).filter((patientId) => Number.isSafeInteger(patientId) && patientId > 0));
+    const lastAvailablePatientId = nextRecentPatientIds.find((patientId) => availablePatientIds.has(patientId));
+
+    if (lastAvailablePatientId) {
+      setSelectedPatientId((currentPatientId) =>
+        currentPatientId === lastAvailablePatientId ? currentPatientId : lastAvailablePatientId
+      );
+    }
+  }, [patientIdsKey]);
 
   useEffect(() => {
     if (!selectedPatientId && patients[0]) {
@@ -121,6 +141,11 @@ export function DoctorDashboardPanel({
       setActiveModal(null);
       setSubmitState(initialState);
     }
+  }
+
+  function selectPatient(patientId: number) {
+    setSelectedPatientId(patientId);
+    setRecentPatientIds(rememberRecentPatient(patientId));
   }
 
   async function submitForm(event: FormEvent<HTMLFormElement>) {
@@ -183,7 +208,18 @@ export function DoctorDashboardPanel({
               <div className="section-heading">
                 <div>
                   <p className="eyebrow">Paciente seleccionado</p>
-                  <h2>{selectedPatient ? `${selectedPatient.nombre} ${selectedPatient.apellido}` : "Sin pacientes asignados"}</h2>
+                  <div className="selected-patient-title">
+                    {selectedPatient ? (
+                      <span className="selected-patient-photo" aria-hidden="true">
+                        {selectedPatient.foto_url ? (
+                          <img src={selectedPatient.foto_url} alt="" />
+                        ) : (
+                          getInitials(selectedPatientName)
+                        )}
+                      </span>
+                    ) : null}
+                    <h2>{selectedPatientName}</h2>
+                  </div>
                 </div>
                 <div className="period-tabs" aria-label="Rango de análisis">
                   <button className={range === "7d" ? "active" : ""} type="button" onClick={() => setRange("7d")}>
@@ -198,36 +234,44 @@ export function DoctorDashboardPanel({
                 </div>
               </div>
 
-              <div className="patient-row">
-                <span className="avatar-badge" aria-hidden="true">
-                  {selectedPatient ? getInitials(`${selectedPatient.nombre} ${selectedPatient.apellido}`) : "--"}
-                </span>
-                <div>
-                  <strong>{selectedPatient ? formatDiabetes(selectedPatient.tipo_diabetes) : "Vinculá pacientes para comenzar"}</strong>
-                  <span>
-                    {selectedPatient ? (
-                      <>
-                        {formatAge(selectedPatient.fecha_nacimiento)} · {selectedPatient.email ?? "Email pendiente"}
-                        {summaryState.data?.patient.telefono ? ` · ${summaryState.data.patient.telefono}` : ""}
-                      </>
+              <div className="patient-profile-card">
+                <div className="patient-row">
+                  <span className="avatar-badge" aria-hidden="true">
+                    {selectedPatient?.foto_url ? (
+                      <img src={selectedPatient.foto_url} alt="" />
+                    ) : selectedPatient ? (
+                      getInitials(`${selectedPatient.nombre} ${selectedPatient.apellido}`)
                     ) : (
-                      "Los pacientes aparecerán cuando tengan tu ID como médico de cabecera."
+                      "--"
                     )}
                   </span>
+                  <div>
+                    <strong>{selectedPatient ? formatDiabetes(selectedPatient.tipo_diabetes) : "Vinculá pacientes para comenzar"}</strong>
+                    <span>
+                      {selectedPatient ? (
+                        <>
+                          {formatAge(selectedPatient.fecha_nacimiento)} · {selectedPatient.email ?? "Email pendiente"}
+                          {summaryState.data?.patient.telefono ? ` · ${summaryState.data.patient.telefono}` : ""}
+                        </>
+                      ) : (
+                        "Los pacientes aparecerán cuando tengan tu ID como médico de cabecera."
+                      )}
+                    </span>
+                  </div>
                 </div>
-              </div>
 
-              {summaryState.error ? <p className="form-error">{summaryState.error}</p> : null}
+                {summaryState.error ? <p className="form-error">{summaryState.error}</p> : null}
 
-              <div className="clinical-metrics">
-                <MetricCard label="Glucemia" value={summaryState.loading ? "--" : metrics.latestGlucose} unit={metrics.latestGlucose !== "--" ? "mg/dL" : undefined} status={metrics.glucoseStatus} compact />
-                <MetricCard label="Promedio" value={summaryState.loading ? "--" : metrics.averageGlucose} unit={metrics.averageGlucose !== "--" ? "mg/dL" : undefined} status={rangeLabel(range)} compact />
-                <MetricCard label="Última insulina" value={summaryState.loading ? "--" : metrics.latestInsulin} unit={metrics.latestInsulin !== "--" ? "u" : undefined} status={metrics.insulinStatus} compact />
-                <MetricCard label="Registros" value={summaryState.loading ? "--" : String(records.length)} status={rangeLabel(range)} compact />
+                <div className="clinical-metrics">
+                  <MetricCard label="Glucemia" value={summaryState.loading ? "--" : metrics.latestGlucose} unit={metrics.latestGlucose !== "--" ? "mg/dL" : undefined} status={metrics.glucoseStatus} compact />
+                  <MetricCard label="Promedio" value={summaryState.loading ? "--" : metrics.averageGlucose} unit={metrics.averageGlucose !== "--" ? "mg/dL" : undefined} status={rangeLabel(range)} compact />
+                  <MetricCard label="Última insulina" value={summaryState.loading ? "--" : metrics.latestInsulin} unit={metrics.latestInsulin !== "--" ? "u" : undefined} status={metrics.insulinStatus} compact />
+                  <MetricCard label="Registros" value={summaryState.loading ? "--" : String(records.length)} status={rangeLabel(range)} compact />
+                </div>
               </div>
             </div>
 
-            <QuickPatientList patients={patients} selectedPatient={selectedPatient} onSelect={setSelectedPatientId} />
+            <QuickPatientList patients={orderedQuickPatients} selectedPatient={selectedPatient} onSelect={selectPatient} />
           </div>
 
           <div className="chart-grid doctor-chart-grid">
@@ -306,7 +350,7 @@ function QuickPatientList({
               key={patient.id_paciente}
             >
               <span className="avatar-badge small" aria-hidden="true">
-                {getInitials(`${patient.nombre} ${patient.apellido}`)}
+                {patient.foto_url ? <img src={patient.foto_url} alt="" /> : getInitials(`${patient.nombre} ${patient.apellido}`)}
               </span>
               <div>
                 <strong>
@@ -322,6 +366,22 @@ function QuickPatientList({
       </div>
     </aside>
   );
+}
+
+function orderPatientsByLocalRecency(patients: DoctorPatientPreview[], recentPatientIds: number[]) {
+  if (!recentPatientIds.length) return patients;
+
+  const recentIndex = new Map(recentPatientIds.map((patientId, index) => [patientId, index]));
+
+  return [...patients].sort((left, right) => {
+    const leftIndex = recentIndex.get(left.id_paciente);
+    const rightIndex = recentIndex.get(right.id_paciente);
+
+    if (leftIndex !== undefined && rightIndex !== undefined) return leftIndex - rightIndex;
+    if (leftIndex !== undefined) return -1;
+    if (rightIndex !== undefined) return 1;
+    return 0;
+  });
 }
 
 function AppointmentFields({ patients, selectedPatientId }: { patients: DoctorPatientPreview[]; selectedPatientId: number | null }) {

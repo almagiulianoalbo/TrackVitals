@@ -35,7 +35,7 @@ export async function GET(request: Request) {
     const [{ data: patient, error: patientError }, { data: latestRecord, error: latestRecordError }] = await Promise.all([
       supabase
         .from("pacientes")
-        .select("id_paciente,nombre,apellido,email,telefono,fecha_nacimiento,tipo_diabetes")
+        .select("id_paciente,nombre,apellido,email,foto_url,telefono,fecha_nacimiento,tipo_diabetes")
         .eq("id_paciente", patientId)
         .eq("id_medico_cabecera", user.userId)
         .maybeSingle(),

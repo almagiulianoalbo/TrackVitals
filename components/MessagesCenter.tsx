@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { rememberRecentPatient } from "@/lib/recent-patients";
 
 type UserRole = "paciente" | "medico";
 type FilterKey = "todos" | "no-leidos";
@@ -36,6 +37,36 @@ type Conversation = MessageContact & {
   messages: MessageRow[];
   unread: number;
   lastMessage: MessageRow | null;
+};
+
+type ConversationSummary = {
+  conversationId: string;
+  patientId: string;
+  doctorId: string;
+  summary: string;
+  mainTopics: string[];
+  clinicalPriority: "baja" | "media" | "alta";
+  lastConcern: string;
+  suggestedFollowUp: string;
+  importantPoints: string[];
+  messageCount: number;
+  lastMessageAt: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type ConversationSummaryState = {
+  loading: boolean;
+  generating: boolean;
+  error: string | null;
+  data: ConversationSummary | null;
+};
+
+const initialSummaryState: ConversationSummaryState = {
+  loading: false,
+  generating: false,
+  error: null,
+  data: null
 };
 
 export function MessagesCenter({
@@ -126,6 +157,12 @@ export function MessagesCenter({
       .catch(() => undefined);
   }, [role, selected?.id, selected?.unread]);
 
+  useEffect(() => {
+    if (role === "medico" && selected?.role === "paciente") {
+      rememberRecentPatient(selected.id);
+    }
+  }, [role, selected?.id, selected?.role]);
+
   return (
     <section className="messages-center">
       <div className="messages-hero">
@@ -200,6 +237,7 @@ function ConversationPanel({
   const [category, setCategory] = useState("Consulta");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [summaryState, setSummaryState] = useState<ConversationSummaryState>(initialSummaryState);
   const streamRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -207,6 +245,42 @@ function ConversationPanel({
     if (!stream) return;
     stream.scrollTop = stream.scrollHeight;
   }, [conversation?.id, conversation?.messages.length]);
+
+  useEffect(() => {
+    if (!conversation || role !== "medico") {
+      setSummaryState(initialSummaryState);
+      return;
+    }
+
+    let ignore = false;
+    setSummaryState({ loading: true, generating: false, error: null, data: null });
+
+    fetch(`/api/dashboard/mensajes/resumen?contacto_id=${conversation.id}`, {
+      cache: "no-store",
+      credentials: "same-origin",
+      headers: { Accept: "application/json" }
+    })
+      .then(async (response) => {
+        const data = (await response.json().catch(() => null)) as { error?: string; summary?: ConversationSummary | null } | null;
+        if (ignore) return;
+
+        if (!response.ok) {
+          setSummaryState({ loading: false, generating: false, error: data?.error ?? "No se pudo cargar el resumen.", data: null });
+          return;
+        }
+
+        setSummaryState({ loading: false, generating: false, error: null, data: data?.summary ?? null });
+      })
+      .catch(() => {
+        if (!ignore) {
+          setSummaryState({ loading: false, generating: false, error: "No se pudo conectar con el servidor.", data: null });
+        }
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [conversation?.id, role]);
 
   if (!conversation) {
     return (
@@ -249,6 +323,31 @@ function ConversationPanel({
     setLoading(false);
   }
 
+  async function generateSummary() {
+    if (!conversation || role !== "medico") return;
+
+    setSummaryState((current) => ({ ...current, generating: true, error: null }));
+
+    const response = await fetch("/api/dashboard/mensajes/resumen", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify({ contacto_id: conversation.id })
+    });
+    const data = (await response.json().catch(() => null)) as { error?: string; summary?: ConversationSummary } | null;
+
+    if (!response.ok || !data?.summary) {
+      setSummaryState((current) => ({
+        ...current,
+        generating: false,
+        error: data?.error ?? "No se pudo generar el resumen."
+      }));
+      return;
+    }
+
+    setSummaryState({ loading: false, generating: false, error: null, data: data.summary });
+  }
+
   return (
     <article className="conversation-panel">
       <header className="conversation-header">
@@ -259,6 +358,14 @@ function ConversationPanel({
           <span>{conversation.email ?? "Contacto clínico"}</span>
         </div>
       </header>
+
+      {role === "medico" ? (
+        <ConversationClinicalSummary
+          state={summaryState}
+          currentMessageCount={conversation.messages.length}
+          onGenerate={generateSummary}
+        />
+      ) : null}
 
       <div className="message-stream" ref={streamRef}>
         {conversation.messages.length ? (
@@ -296,6 +403,76 @@ function ConversationPanel({
         </button>
       </form>
     </article>
+  );
+}
+
+function ConversationClinicalSummary({
+  state,
+  currentMessageCount,
+  onGenerate
+}: {
+  state: ConversationSummaryState;
+  currentMessageCount: number;
+  onGenerate: () => void;
+}) {
+  const hasNewMessages = Boolean(state.data && currentMessageCount > state.data.messageCount);
+
+  return (
+    <section className={`conversation-summary-card ${state.data ? `priority-${state.data.clinicalPriority}` : ""}`}>
+      <div className="conversation-summary-heading">
+        <div>
+          <p className="eyebrow">Resumen clínico de conversación</p>
+          <h4>{state.data ? "Lectura rápida del intercambio" : "Todavía no hay resumen clínico para esta conversación"}</h4>
+        </div>
+        <button className="secondary-button conversation-summary-action" type="button" onClick={onGenerate} disabled={state.loading || state.generating}>
+          {state.generating ? "Generando..." : state.data ? "Actualizar resumen" : "Generar resumen"}
+        </button>
+      </div>
+
+      {state.loading ? <p className="conversation-summary-muted">Cargando resumen clínico...</p> : null}
+      {state.error ? <p className="form-error">{state.error}</p> : null}
+
+      {state.data ? (
+        <div className="conversation-summary-body">
+          <p>{state.data.summary}</p>
+          <div className="conversation-summary-meta">
+            <span className={`clinical-priority priority-${state.data.clinicalPriority}`}>Prioridad {state.data.clinicalPriority}</span>
+            <span>{state.data.messageCount} mensajes analizados</span>
+            <span>Actualizado {formatSummaryDate(state.data.updatedAt)}</span>
+          </div>
+          {hasNewMessages ? <p className="conversation-summary-notice">Hay mensajes nuevos desde el último resumen.</p> : null}
+
+          <div className="conversation-summary-grid">
+            <SummaryBlock title="Temas principales" items={state.data.mainTopics} />
+            <SummaryBlock title="Puntos importantes" items={state.data.importantPoints} />
+          </div>
+
+          <dl className="conversation-summary-lines">
+            <div>
+              <dt>Última preocupación</dt>
+              <dd>{state.data.lastConcern}</dd>
+            </div>
+            <div>
+              <dt>Sugerencia de seguimiento</dt>
+              <dd>{state.data.suggestedFollowUp}</dd>
+            </div>
+          </dl>
+        </div>
+      ) : !state.loading ? (
+        <p className="conversation-summary-muted">Tocá “Generar resumen” para crear una lectura clínica basada en los mensajes existentes.</p>
+      ) : null}
+    </section>
+  );
+}
+
+function SummaryBlock({ title, items }: { title: string; items: string[] }) {
+  return (
+    <div className="conversation-summary-block">
+      <strong>{title}</strong>
+      <ul>
+        {items.map((item) => <li key={item}>{item}</li>)}
+      </ul>
+    </div>
   );
 }
 
@@ -353,6 +530,12 @@ function formatTime(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "--";
   return date.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" });
+}
+
+function formatSummaryDate(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "recién";
+  return date.toLocaleString("es-AR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
 }
 
 function getInitials(name: string) {

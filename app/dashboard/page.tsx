@@ -76,7 +76,7 @@ async function getDashboardData(user: SessionUser): Promise<DashboardData> {
         supabase.from("pacientes").select("id_paciente", { count: "exact", head: true }).eq("id_medico_cabecera", user.userId),
         supabase
           .from("pacientes")
-          .select("id_paciente,nombre,apellido,email,fecha_nacimiento,tipo_diabetes")
+          .select("id_paciente,nombre,apellido,email,foto_url,fecha_nacimiento,tipo_diabetes")
           .eq("id_medico_cabecera", user.userId)
           .order("apellido", { ascending: true }),
         supabase
@@ -86,11 +86,17 @@ async function getDashboardData(user: SessionUser): Promise<DashboardData> {
       ]);
 
       const assignedPatients = (patients ?? []) as DoctorPatientPreview[];
-      const latestRecordByPatient = await getLatestRecordByPatient(assignedPatients.map((patient) => patient.id_paciente));
+      const patientIds = assignedPatients.map((patient) => patient.id_paciente);
+      const [latestMessageByPatient, latestRecordByPatient] = await Promise.all([
+        getLatestMessageByPatient(user.userId, patientIds),
+        getLatestRecordByPatient(patientIds)
+      ]);
 
       return {
         ...fallback,
-        assignedPatients: assignedPatients.toSorted((left, right) => compareQuickPatients(left, right, latestRecordByPatient)),
+        assignedPatients: assignedPatients.toSorted((left, right) =>
+          compareQuickPatients(left, right, latestMessageByPatient, latestRecordByPatient)
+        ),
         assignedPatientsCount: count ?? 0,
         doctorAlertCount: alertCount ?? 0
       };
@@ -142,6 +148,32 @@ function formatAppointmentShortcut(value: string | null) {
   return `${day} · ${time}`;
 }
 
+async function getLatestMessageByPatient(doctorId: number, patientIds: number[]) {
+  const latestMessageByPatient = new Map<number, string>();
+
+  if (!patientIds.length) {
+    return latestMessageByPatient;
+  }
+
+  const supabase = getSupabaseAdmin();
+  const { data } = await supabase
+    .from("mensajes")
+    .select("id_paciente,fecha_hora")
+    .eq("id_medico", doctorId)
+    .in("id_paciente", patientIds)
+    .order("fecha_hora", { ascending: false });
+
+  (data ?? []).forEach((message) => {
+    const patientId = Number(message.id_paciente);
+
+    if (!latestMessageByPatient.has(patientId) && message.fecha_hora) {
+      latestMessageByPatient.set(patientId, message.fecha_hora);
+    }
+  });
+
+  return latestMessageByPatient;
+}
+
 async function getLatestRecordByPatient(patientIds: number[]) {
   const latestRecordByPatient = new Map<number, string>();
 
@@ -167,16 +199,33 @@ async function getLatestRecordByPatient(patientIds: number[]) {
   return latestRecordByPatient;
 }
 
-function compareQuickPatients(left: DoctorPatientPreview, right: DoctorPatientPreview, latestRecordByPatient: Map<number, string>) {
-  const leftRecord = latestRecordByPatient.get(left.id_paciente);
-  const rightRecord = latestRecordByPatient.get(right.id_paciente);
+function compareQuickPatients(
+  left: DoctorPatientPreview,
+  right: DoctorPatientPreview,
+  latestMessageByPatient: Map<number, string>,
+  latestRecordByPatient: Map<number, string>
+) {
+  const messageOrder = compareLatestDate(latestMessageByPatient.get(left.id_paciente), latestMessageByPatient.get(right.id_paciente));
 
-  if (leftRecord && rightRecord && leftRecord !== rightRecord) {
-    return new Date(rightRecord).getTime() - new Date(leftRecord).getTime();
+  if (messageOrder !== 0) {
+    return messageOrder;
   }
 
-  if (leftRecord && !rightRecord) return -1;
-  if (!leftRecord && rightRecord) return 1;
+  const recordOrder = compareLatestDate(latestRecordByPatient.get(left.id_paciente), latestRecordByPatient.get(right.id_paciente));
+
+  if (recordOrder !== 0) {
+    return recordOrder;
+  }
 
   return `${left.apellido} ${left.nombre}`.localeCompare(`${right.apellido} ${right.nombre}`, "es");
+}
+
+function compareLatestDate(leftDate?: string, rightDate?: string) {
+  if (leftDate && rightDate && leftDate !== rightDate) {
+    return new Date(rightDate).getTime() - new Date(leftDate).getTime();
+  }
+
+  if (leftDate && !rightDate) return -1;
+  if (!leftDate && rightDate) return 1;
+  return 0;
 }
