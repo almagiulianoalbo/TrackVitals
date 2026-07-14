@@ -80,8 +80,9 @@ body::before {
 
 :root[data-theme="dark"] body {
   background:
-    linear-gradient(135deg, rgba(230, 247, 243, 0.96), rgba(242, 244, 247, 0.82) 48%, rgba(255, 255, 255, 0.96)),
-    #f8fbfc;
+    radial-gradient(circle at 12% 8%, rgba(20, 184, 166, 0.14), transparent 30%),
+    radial-gradient(circle at 88% 22%, rgba(111, 168, 220, 0.1), transparent 28%),
+    linear-gradient(135deg, #08111d, #0d1b2a 52%, #0f2734);
 }
 
 :root[data-theme="dark"] body::before {
@@ -1588,6 +1589,22 @@ body:has(.auth-overlay:target) {
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 2;
+}
+
+.theme-toggle-moon .moon-shape {
+  fill: currentColor;
+  stroke: none;
+}
+
+.theme-toggle-moon .moon-star {
+  fill: none;
+  stroke: var(--teal-600);
+  stroke-width: 1.8;
+}
+
+.theme-toggle-moon .moon-star-small {
+  opacity: 0.72;
+  stroke-width: 1.6;
 }
 
 .theme-toggle-moon {
@@ -4455,21 +4472,48 @@ body:has(.auth-overlay:target) {
 }
 
 .macro-ring {
+  position: relative;
   display: grid;
   place-items: center;
   aspect-ratio: 1;
   border-radius: 50%;
-  background:
-    radial-gradient(circle, var(--surface) 0 55%, transparent 56%),
-    conic-gradient(#0d1b2a var(--value), rgba(215, 230, 236, 0.86) 0);
+  background: var(--surface);
   box-shadow:
     inset 0 0 0 1px rgba(13, 27, 42, 0.05),
     0 14px 28px rgba(13, 27, 42, 0.08);
 }
 
+.macro-ring-svg {
+  grid-area: 1 / 1;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  transform: rotate(-90deg);
+}
+
+.macro-ring-track,
+.macro-ring-progress {
+  fill: none;
+  stroke-width: 11;
+}
+
+.macro-ring-track {
+  stroke: rgba(215, 230, 236, 0.86);
+}
+
+.macro-ring-progress {
+  stroke: #0d1b2a;
+  stroke-dasharray: var(--ring-length);
+  stroke-dashoffset: var(--ring-offset);
+  stroke-linecap: round;
+  transition: stroke-dashoffset 120ms linear;
+}
+
 .macro-ring strong,
 .macro-ring span {
   grid-area: 1 / 1;
+  position: relative;
+  z-index: 1;
 }
 
 .macro-ring strong {
@@ -7151,13 +7195,19 @@ button.patient-list-item:last-child {
 }
 
 :root[data-theme="dark"] .macro-ring {
-  background:
-    radial-gradient(circle, #111f2f 0 55%, transparent 56%),
-    conic-gradient(#14b8a6 var(--value), rgba(230, 247, 243, 0.16) 0);
+  background: #111f2f;
   box-shadow:
     inset 0 0 0 1px rgba(230, 247, 243, 0.08),
     0 16px 34px rgba(0, 0, 0, 0.2),
     0 0 22px rgba(20, 184, 166, 0.08);
+}
+
+:root[data-theme="dark"] .macro-ring-track {
+  stroke: rgba(230, 247, 243, 0.16);
+}
+
+:root[data-theme="dark"] .macro-ring-progress {
+  stroke: #14b8a6;
 }
 
 :root[data-theme="dark"] .food-plan-score {

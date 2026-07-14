@@ -158,22 +158,10 @@ export function FoodPlanBoard({
           <span className={`food-plan-status ${normalizeStatus(selected?.estado)}`}>{formatStatus(selected?.estado)}</span>
           <h3>Lectura rápida</h3>
           <div className="macro-rings">
-            <div className="macro-ring calories" style={{ "--value": `${animatedCompletionPercent}%` } as CSSProperties}>
-              <strong>{totals.calories}</strong>
-              <span>kcal</span>
-            </div>
-            <div className="macro-ring carbs" style={{ "--value": `${animatedCompletionPercent}%` } as CSSProperties}>
-              <strong>{totals.carbs}</strong>
-              <span>g CH</span>
-            </div>
-            <div className="macro-ring protein" style={{ "--value": `${animatedCompletionPercent}%` } as CSSProperties}>
-              <strong>{totals.protein}</strong>
-              <span>g prot.</span>
-            </div>
-            <div className="macro-ring fats" style={{ "--value": `${animatedCompletionPercent}%` } as CSSProperties}>
-              <strong>{totals.fats}</strong>
-              <span>g grasa</span>
-            </div>
+            <MacroRing value={totals.calories} label="kcal" progress={animatedCompletionPercent} />
+            <MacroRing value={totals.carbs} label="g CH" progress={animatedCompletionPercent} />
+            <MacroRing value={totals.protein} label="g prot." progress={animatedCompletionPercent} />
+            <MacroRing value={totals.fats} label="g grasa" progress={animatedCompletionPercent} />
           </div>
           <dl className="food-plan-lines">
             <Info label="Objetivo" value={calorieGoal ? `${calorieGoal} kcal` : "No cargado"} />
@@ -184,6 +172,24 @@ export function FoodPlanBoard({
         </aside>
       </div>
     </section>
+  );
+}
+
+function MacroRing({ value, label, progress }: { value: number; label: string; progress: number }) {
+  const radius = 42;
+  const circumference = 2 * Math.PI * radius;
+  const clampedProgress = Math.max(0, Math.min(100, progress));
+  const dashOffset = circumference - (clampedProgress / 100) * circumference;
+
+  return (
+    <div className="macro-ring" style={{ "--ring-length": `${circumference}`, "--ring-offset": `${dashOffset}` } as CSSProperties}>
+      <svg className="macro-ring-svg" viewBox="0 0 100 100" aria-hidden="true">
+        <circle className="macro-ring-track" cx="50" cy="50" r={radius} />
+        <circle className="macro-ring-progress" cx="50" cy="50" r={radius} />
+      </svg>
+      <strong>{value}</strong>
+      <span>{label}</span>
+    </div>
   );
 }
 

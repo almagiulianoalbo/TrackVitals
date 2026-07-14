@@ -99,7 +99,7 @@ export function PatientDashboardPanel({
 
           <div className="weekly-summary-layout">
             <div className="weekly-chart-stack">
-              <WeeklyInsightEntryCard summary={weeklySummary} />
+              <WeeklyGlucoseChart summary={weeklySummary} />
               <RangeDistributionChart records={weeklySummary.records} compact />
             </div>
             <WeeklyMetricPanel summary={weeklySummary} />
