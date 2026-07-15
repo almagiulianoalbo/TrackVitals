@@ -32,7 +32,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ summary });
   } catch (error) {
     console.error(error);
-    return jsonError("No se pudo cargar el resumen clínico.", 500);
+    return jsonError(getConversationSummaryErrorMessage(error, "cargar"), 500);
   }
 }
 
@@ -65,7 +65,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ summary });
   } catch (error) {
     console.error(error);
-    return jsonError("No se pudo generar el resumen clínico.", 500);
+    return jsonError(getConversationSummaryErrorMessage(error, "generar"), 500);
   }
 }
 
@@ -94,4 +94,24 @@ function cleanRequiredNumber(value: unknown) {
   if (typeof value !== "string" && typeof value !== "number") return null;
   const numberValue = Number(value);
   return Number.isSafeInteger(numberValue) && numberValue > 0 ? numberValue : null;
+}
+
+function getConversationSummaryErrorMessage(error: unknown, action: "cargar" | "generar") {
+  const message = error instanceof Error ? error.message : "";
+
+  if (message.includes("Falta MONGODB_URI")) {
+    return "Falta configurar MONGODB_URI para guardar el resumen clínico.";
+  }
+
+  if (
+    message.includes("SSL") ||
+    message.includes("TLS") ||
+    message.includes("ServerSelection") ||
+    message.includes("ECONNREFUSED") ||
+    message.includes("ETIMEDOUT")
+  ) {
+    return "MongoDB Atlas rechazó la conexión. Revisá Network Access/IP allowlist en Atlas y que el cluster permita conexiones desde esta red.";
+  }
+
+  return `No se pudo ${action} el resumen clínico.`;
 }

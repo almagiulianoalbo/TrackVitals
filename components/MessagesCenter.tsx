@@ -238,6 +238,7 @@ function ConversationPanel({
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [summaryState, setSummaryState] = useState<ConversationSummaryState>(initialSummaryState);
+  const [summaryOpen, setSummaryOpen] = useState(false);
   const streamRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -249,10 +250,12 @@ function ConversationPanel({
   useEffect(() => {
     if (!conversation || role !== "medico") {
       setSummaryState(initialSummaryState);
+      setSummaryOpen(false);
       return;
     }
 
     let ignore = false;
+    setSummaryOpen(false);
     setSummaryState({ loading: true, generating: false, error: null, data: null });
 
     fetch(`/api/dashboard/mensajes/resumen?contacto_id=${conversation.id}`, {
@@ -326,6 +329,7 @@ function ConversationPanel({
   async function generateSummary() {
     if (!conversation || role !== "medico") return;
 
+    setSummaryOpen(true);
     setSummaryState((current) => ({ ...current, generating: true, error: null }));
 
     const response = await fetch("/api/dashboard/mensajes/resumen", {
@@ -351,19 +355,30 @@ function ConversationPanel({
   return (
     <article className="conversation-panel">
       <header className="conversation-header">
-        <span className="message-avatar large" aria-hidden="true">{getInitials(conversation.name)}</span>
-        <div>
-          <p className="eyebrow">{conversation.role === "medico" ? "Médico" : "Paciente"}</p>
-          <h3>{conversation.name}</h3>
-          <span>{conversation.email ?? "Contacto clínico"}</span>
+        <div className="conversation-identity">
+          <div>
+            <p className="eyebrow">{conversation.role === "medico" ? "Médico" : "Paciente"}</p>
+            <h3>{conversation.name}</h3>
+            <span>{conversation.email ?? "Contacto clínico"}</span>
+          </div>
         </div>
+
+        {role === "medico" ? (
+          <ConversationSummaryLauncher
+            state={summaryState}
+            currentMessageCount={conversation.messages.length}
+            onGenerate={generateSummary}
+            onOpen={() => setSummaryOpen(true)}
+          />
+        ) : null}
       </header>
 
-      {role === "medico" ? (
-        <ConversationClinicalSummary
+      {role === "medico" && summaryOpen ? (
+        <ConversationSummaryModal
           state={summaryState}
           currentMessageCount={conversation.messages.length}
           onGenerate={generateSummary}
+          onClose={() => setSummaryOpen(false)}
         />
       ) : null}
 
@@ -406,14 +421,16 @@ function ConversationPanel({
   );
 }
 
-function ConversationClinicalSummary({
+function ConversationSummaryLauncher({
   state,
   currentMessageCount,
-  onGenerate
+  onGenerate,
+  onOpen
 }: {
   state: ConversationSummaryState;
   currentMessageCount: number;
   onGenerate: () => void;
+  onOpen: () => void;
 }) {
   const hasNewMessages = Boolean(state.data && currentMessageCount > state.data.messageCount);
 
@@ -422,46 +439,101 @@ function ConversationClinicalSummary({
       <div className="conversation-summary-heading">
         <div>
           <p className="eyebrow">Resumen clínico de conversación</p>
-          <h4>{state.data ? "Lectura rápida del intercambio" : "Todavía no hay resumen clínico para esta conversación"}</h4>
+          <h4>{state.data ? "Lectura rápida disponible" : "Todavía no hay resumen clínico"}</h4>
+          {state.loading ? <p className="conversation-summary-muted">Buscando resumen guardado...</p> : null}
+          {hasNewMessages ? <p className="conversation-summary-notice">Mensajes nuevos</p> : null}
+          {!state.data && !state.loading && !state.error ? (
+            <p className="conversation-summary-muted">Generalo para abrirlo en modal.</p>
+          ) : null}
         </div>
-        <button className="secondary-button conversation-summary-action" type="button" onClick={onGenerate} disabled={state.loading || state.generating}>
-          {state.generating ? "Generando..." : state.data ? "Actualizar resumen" : "Generar resumen"}
-        </button>
+        <div className="conversation-summary-actions">
+          {state.data ? (
+            <button className="secondary-button conversation-summary-action" type="button" onClick={onOpen}>
+              Ver resumen
+            </button>
+          ) : null}
+          <button className="secondary-button conversation-summary-action" type="button" onClick={onGenerate} disabled={state.loading || state.generating}>
+            {state.generating ? "Generando..." : state.data ? "Actualizar resumen" : "Generar resumen"}
+          </button>
+        </div>
       </div>
 
-      {state.loading ? <p className="conversation-summary-muted">Cargando resumen clínico...</p> : null}
       {state.error ? <p className="form-error">{state.error}</p> : null}
-
-      {state.data ? (
-        <div className="conversation-summary-body">
-          <p>{state.data.summary}</p>
-          <div className="conversation-summary-meta">
-            <span className={`clinical-priority priority-${state.data.clinicalPriority}`}>Prioridad {state.data.clinicalPriority}</span>
-            <span>{state.data.messageCount} mensajes analizados</span>
-            <span>Actualizado {formatSummaryDate(state.data.updatedAt)}</span>
-          </div>
-          {hasNewMessages ? <p className="conversation-summary-notice">Hay mensajes nuevos desde el último resumen.</p> : null}
-
-          <div className="conversation-summary-grid">
-            <SummaryBlock title="Temas principales" items={state.data.mainTopics} />
-            <SummaryBlock title="Puntos importantes" items={state.data.importantPoints} />
-          </div>
-
-          <dl className="conversation-summary-lines">
-            <div>
-              <dt>Última preocupación</dt>
-              <dd>{state.data.lastConcern}</dd>
-            </div>
-            <div>
-              <dt>Sugerencia de seguimiento</dt>
-              <dd>{state.data.suggestedFollowUp}</dd>
-            </div>
-          </dl>
-        </div>
-      ) : !state.loading ? (
-        <p className="conversation-summary-muted">Tocá “Generar resumen” para crear una lectura clínica basada en los mensajes existentes.</p>
-      ) : null}
     </section>
+  );
+}
+
+function ConversationSummaryModal({
+  state,
+  currentMessageCount,
+  onGenerate,
+  onClose
+}: {
+  state: ConversationSummaryState;
+  currentMessageCount: number;
+  onGenerate: () => void;
+  onClose: () => void;
+}) {
+  const hasNewMessages = Boolean(state.data && currentMessageCount > state.data.messageCount);
+
+  return (
+    <div className="conversation-summary-modal-backdrop" role="presentation">
+      <section className="conversation-summary-modal" role="dialog" aria-modal="true" aria-labelledby="conversation-summary-title">
+        <header className="conversation-summary-modal-header">
+          <div>
+            <p className="eyebrow">Resumen clínico de conversación</p>
+            <h4 id="conversation-summary-title">{state.data ? "Lectura rápida del intercambio" : "Preparando lectura clínica"}</h4>
+          </div>
+          <button className="modal-close conversation-summary-close" type="button" onClick={onClose} aria-label="Cerrar resumen">
+            ×
+          </button>
+        </header>
+
+        {state.loading || state.generating ? <p className="conversation-summary-muted">Generando resumen clínico...</p> : null}
+        {state.error ? <p className="form-error">{state.error}</p> : null}
+
+        {state.data ? (
+          <div className="conversation-summary-body">
+            <p>{state.data.summary}</p>
+            <div className="conversation-summary-meta">
+              <span className={`clinical-priority priority-${state.data.clinicalPriority}`}>Prioridad {state.data.clinicalPriority}</span>
+              <span>{state.data.messageCount} mensajes analizados</span>
+              <span>Actualizado {formatSummaryDate(state.data.updatedAt)}</span>
+            </div>
+            {hasNewMessages ? <p className="conversation-summary-notice">Hay mensajes nuevos desde el último resumen.</p> : null}
+
+            <div className="conversation-summary-grid">
+              <SummaryBlock title="Temas principales" items={state.data.mainTopics} />
+              <SummaryBlock title="Puntos importantes" items={state.data.importantPoints} />
+            </div>
+
+            <dl className="conversation-summary-lines">
+              <div>
+                <dt>Última preocupación</dt>
+                <dd>{state.data.lastConcern}</dd>
+              </div>
+              <div>
+                <dt>Sugerencia de seguimiento</dt>
+                <dd>{state.data.suggestedFollowUp}</dd>
+              </div>
+            </dl>
+
+            <div className="conversation-summary-modal-actions">
+              <button className="secondary-button conversation-summary-action" type="button" onClick={onGenerate} disabled={state.generating}>
+                {state.generating ? "Actualizando..." : "Actualizar resumen"}
+              </button>
+            </div>
+          </div>
+        ) : !state.loading && !state.generating ? (
+          <div className="conversation-summary-empty">
+            <p className="conversation-summary-muted">Todavía no hay resumen clínico para esta conversación.</p>
+            <button className="secondary-button conversation-summary-action" type="button" onClick={onGenerate}>
+              Generar resumen
+            </button>
+          </div>
+        ) : null}
+      </section>
+    </div>
   );
 }
 
